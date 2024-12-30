@@ -20,7 +20,7 @@ RUN mkdir functions
 RUN mkdir functions_core
 RUN mkdir install
 RUN mkdir keys
-#RUN mkdir tests
+RUN mkdir telegraf
 
 ADD config config
 ADD functions functions
@@ -28,7 +28,7 @@ ADD functions_core functions_core
 ADD install install
 ADD keys keys
 ADD logs logs
-#ADD tests tests
+ADD config/telegraf.conf telegraf
 ADD main.py .
 
 #RUN python3 -m pip install --upgrade pip

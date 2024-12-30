@@ -7,6 +7,7 @@ services:
       - /opt/observit/collector/config:/collector/config
       - /opt/observit/collector/keys:/collector/keys
       - /opt/observit/collector/tests:/collector/tests
+      - /opt/observit/telegraf/config/telegraf.conf:/collector/telegraf/telegraf.conf
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
 #      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
@@ -51,6 +52,25 @@ services:
 #      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
       - INFLUXD_TLS_CERT=/etc/ssl/influxdb.crt
       - INFLUXD_TLS_KEY=/etc/ssl/influxdb.key
+    logging:
+       options:
+         max-size: "10m"
+         max-file: 3
+
+  telegraf:
+    image: "telegraf:latest"
+    restart: unless-stopped
+    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/observit/telegraf/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    user: "1000"
+    command: telegraf --watch-config poll
+#    environment:
+#      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
+#      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
+#      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
+#      - INFLUXD_TLS_CERT=/etc/ssl/influxdb.crt
+#      - INFLUXD_TLS_KEY=/etc/ssl/influxdb.key
     logging:
        options:
          max-size: "10m"

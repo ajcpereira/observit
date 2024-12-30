@@ -95,6 +95,30 @@ make_dhcp() {
     sudo netplan apply
 }
 
+build_collector() {
+    cd /home/observit/observit
+
+	docker compose stop observit
+
+	docker compose images rm observit-observit-1
+
+	cp ./install/Dockerfile .
+    if [ ! -d /opt/observit/telegraf/config ]; then
+       mkdir -p /opt/observit/telegraf/config
+       cp ./config/telegraf.conf /opt/observit/telegraf/config
+    elif [ ! -f /opt/observit/telegraf/config/telegraf.config ];then
+       cp ./config/telegraf.conf /opt/observit/telegraf/config
+    fi
+
+	docker build . -t observit:latest
+	docker compose create observit
+
+	docker compose start observit
+    docker compose up -d
+
+	rm Dockerfile
+}
+
 # Function to manage containers
 manage_containers() {
 
@@ -148,7 +172,8 @@ while true; do
     4 "House Keeping for containers" \
     5 "Enable DHCP" \
     6 "Change timezone" \
-    7 "Exit" 3>&1 1>&2 2>&3 3>&-)
+    7 "Build Container" \
+    8 "Exit" 3>&1 1>&2 2>&3 3>&-)
     
     case $CHOICE in
         1)
@@ -170,6 +195,9 @@ while true; do
             change_timezone
             ;;
         7)
+            build_collector
+            ;;
+        8)
             clear
             break
             ;;

@@ -143,180 +143,141 @@ try:
     print("YAML is valid!")
 except ValidationError as e:
     print("Validation errors:", e)
-    
-#####################
-    
-from pydantic import BaseModel, root_validator, ValidationError, validator, create_model
-from typing import List, Dict, Optional, Any
+
+
+
+
+##############################
+
+
+from pydantic import BaseModel, Field, root_validator, create_model
+from typing import List, Optional, Dict, Any
 import yaml
 
-# Define validation rules for each resource_type
-RESOURCE_TYPE_VALIDATIONS = {
-    "linux_os": {
-        "metrics": ["cpu", "mem", "fs", "net"],
-        "required_parameters": ["user", "host_keys", "port"],  # Example of required parameters for linux_os
-    },
-    "powerstor": {
-        "metrics": ["node", "disk"],
-        "required_parameters": ["protocol", "port", "user", "pwd64"],
-    },
-    "redfish": {
-        "metrics": ["power", "temp"],
-        "required_parameters": ["protocol", "user", "pwd64", "unsecured"],
-    },
-}
+# Define the base configuration model
+class BaseConfig(BaseModel):
+    user: str
+    pwd64: str
+    unsecured: bool
+    proxy: Optional[str] = None
+    proxy_user: Optional[str] = None
+    proxy_pwd64: Optional[str] = None
+    poll: int
+    port: Optional[int] = None  # Optional, since it might not exist for all types
+    host_keys: Optional[str] = None  # Optional field for linux_os
 
-# Helper function to create a dynamic model for each resource_type
-def create_dynamic_resource_model(resource_type: str) -> BaseModel:
-    """Create a dynamic model based on resource_types with validation."""
-    # Check the validation schema for the resource_type
-    validation = RESOURCE_TYPE_VALIDATIONS.get(resource_type, {})
+    @root_validator(pre=True)
+    def validate_common_fields(cls, values):
+        resources_types = values.get("resources_types")
+        if resources_types == "linux_os" and not values.get('host_keys'):
+            raise ValueError("host_keys is required for linux_os resource type.")
+        return values
 
-    # Create the model with metrics and parameters that follow the defined schema
-    return create_model(
-        f"{resource_type.capitalize()}Config",
-        parameters=Dict[str, Optional[str]],
-        metrics=List[str],
-        ips=List[Dict[str, str]],
-        # Custom validation function (validated at the root level)
-        _validate_metrics=True,
-        __validators__=validation,
-    )
+# Define dynamic creation of models based on resource type
+def create_resource_type_model(resource_type: str):
+    """Create a Pydantic model dynamically based on resource type."""
+    
+    # Define the basic fields for every resource type
+    dynamic_fields = {
+        "resources_types": (str, resource_type),
+        "metrics": (List[Dict[str, str]], []),  # Default empty list for metrics
+    }
 
-# Dynamic system configuration model with validation logic
-class DynamicSystemConfig(BaseModel):
+    # Based on resource type, define additional fields or modify the model
+    if resource_type == "powerstore":
+        dynamic_fields["protocol"] = (str, "http")  # Example of a powerstore-specific field
+        dynamic_fields["ips"] = (List[Dict[str, str]], [])  # Ips section for powerstore
+    elif resource_type == "redfish":
+        dynamic_fields["url"] = (str, "")  # URL field for redfish
+        dynamic_fields["ips"] = (List[Dict[str, str]], [])  # Ips section for redfish
+    elif resource_type == "linux_os":
+        dynamic_fields["host_keys"] = (str, None)  # Specific to linux_os
+        dynamic_fields["ips"] = (List[Dict[str, str]], [])  # Ips section for linux_os
+    else:
+        dynamic_fields["ips"] = (List[Dict[str, str]], [])  # Default ips section for all types
+
+    # Create and return a Pydantic model dynamically
+    return create_model(f"{resource_type.capitalize()}Config", **dynamic_fields)
+
+# Now, generate the system model with dynamic resource-specific configuration
+class System(BaseModel):
     name: str
     resources_types: str
-    config: Any
+    config: BaseConfig
+    metrics: List[Dict[str, str]]
+    ips: List[Dict[str, str]]
 
-    # Root-level validator to validate metrics and parameters based on resource_types
     @root_validator(pre=True)
-    def validate_resource_type_fields(cls, values):
-        resource_type = values.get('resources_types')
-        config = values.get('config', {})
+    def validate_resource_type(cls, values):
+        # Dynamically load the correct configuration model for each resource_type
+        resource_type = values.get("resources_types")
+        config_model = create_resource_type_model(resource_type)
 
-        # Get the validation rules for the given resource_type
-        validation = RESOURCE_TYPE_VALIDATIONS.get(resource_type)
-
-        if not validation:
-            raise ValueError(f"Unknown resource type: {resource_type}")
-
-        # Validate metrics
-        metrics = config.get('metrics', [])
-        valid_metrics = validation.get("metrics", [])
-        invalid_metrics = [metric for metric in metrics if metric not in valid_metrics]
-
-        if invalid_metrics:
-            raise ValueError(f"Invalid metrics for '{resource_type}': {', '.join(invalid_metrics)}")
-
-        # Validate required parameters
-        required_params = validation.get("required_parameters", [])
-        missing_params = [param for param in required_params if param not in config.get('parameters', {})]
-        if missing_params:
-            raise ValueError(f"Missing required parameters for '{resource_type}': {', '.join(missing_params)}")
-
+        # Replace config with the dynamically generated class
+        values["config"] = config_model(**values["config"])
         return values
 
 
-# Function to build dynamic models for each resource type and validate data
-def build_dynamic_models(data: Dict[str, Any]) -> Dict[str, BaseModel]:
-    """Build dynamic models based on resource_types in the YAML."""
-    models = {}
+class Systems(BaseModel):
+    systems: List[System]
 
-    for item in data.get("systems", []):
-        resource_type = item.get("resources_types", "")
-        
-        if resource_type:
-            # Generate the model dynamically based on resource_type
-            config_model = create_dynamic_resource_model(resource_type)
-            
-            # Create a dynamic model for each system
-            models[item["name"]] = DynamicSystemConfig
-
-    return models
-
-
-# Function to load and validate YAML content dynamically using generated models
-def load_and_validate_yaml(yaml_content: str):
-    # Parse the YAML content into a Python dict
-    data = yaml.safe_load(yaml_content)
-    
-    # Build dynamic models for the systems based on the resource_types
-    models = build_dynamic_models(data)
-
-    # Validate each system using the generated model
-    for system in data.get("systems", []):
-        resource_name = system["name"]
-        system_model = models.get(resource_name)
-
-        if system_model:
-            try:
-                # Validate the system using its respective dynamic model
-                system_instance = system_model(**system)
-                print(f"Validated system: {system_instance.json(indent=2)}")
-            except ValidationError as e:
-                print(f"Validation failed for {resource_name}: {e}")
-
-
-# Example YAML input (as a string)
-yaml_content = """
+# Example YAML input for testing
+yaml_input = """
 systems:
-  - name: demo1
-    resources_types: linux_os
-    config:
-      parameters:
-        user: fjcollector
-        host_keys: keys/id_rsa
-        port: 22
-      metrics:
-        - cpu
-        - mem
-        - fs
-        - net
-      ips:
-        - ip: 10.8.1.1
-          alias: linux1
-        - ip: 10.8.1.2
-          alias: linux2
   - name: powerstor1
-    resources_types: powerstor
+    resources_types: powerstore
     config:
-      parameters:
-        protocol: http
-        port: 8080
-        user: apereira
-        pwd64: TBD
-      metrics:
-        - node
-      ips:
-        - ip: 10.10.9.9
-          alias: powerstor1
-  - name: irmc
+      protocol: http
+      port: 8080
+      user: apereira
+      pwd64: TBD
+      unsecured: True
+      proxy: None
+      proxy_user: youknowwho
+      proxy_pwd64: TBD
+      poll: 1
+    metrics:
+      - name: node
+      - name: vol
+    ips:
+      - ip: 10.10.9.9
+        alias: powerstor1
+  - name: redfish1
     resources_types: redfish
     config:
-      parameters:
-        protocol: https
-        user: apereira
-        pwd64: TBD
-        unsecured: False
-      metrics:
-        - power
-        - temp
-      ips:
-        - ip: 10.10.10.1
-          alias: server1
-          ip_protocol: http
-global_parameters:
-  repository: influxdb
-  repository_port: 8086
-  repository_protocol: tcp
-  repository_api_key: TBD
-  loglevel: DEBUG
-  logfile: logs/fjcollector.log
-  auto_fungraph: True
-  grafana_api_key: TBD
-  grafana_server: grafana
+      user: apereira
+      pwd64: TBD
+      unsecured: True
+      proxy: None
+      proxy_user: youknowwho
+      proxy_pwd64: TBD
+      poll: 1
+    metrics:
+      - name: power
+      - name: temperature
+    ips:
+      - url: http://10.10.10.1:8080
+        alias: redfish1
+  - name: linuxos1
+    resources_types: linux_os
+    config:
+      user: fjcollector
+      host_keys: keys/id_rsa
+      port: None
+      proxy: None
+      poll: 1
+    ips:
+      - ip: 10.8.1.1
+        alias: linux1
+      - ip: 10.8.1.2
+        alias: linux2
+        ip_user: uknowwu
+        ip_pwd64: TBD
 """
 
-# Load and validate the YAML content
-load_and_validate_yaml(yaml_content)
+# Convert YAML to Python (you can use PyYAML to load this)
+data = yaml.safe_load(yaml_input)
+
+# Validate with Pydantic
+systems = Systems(**data)
+print(systems)

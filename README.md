@@ -1,7 +1,7 @@
 # ObservIT
 ![Logo](https://github.com/ajcpereira/observIT/blob/main/img/ObservIT.jpg)
 
-This is an aggregator for data collection that populates data in InfluxDB and uses Grafana which integrates natively with Infludb where you can draw your graphs.
+This is an aggregator for data collection that populates data in InfluxDB and uses Grafana which integrates natively with Infludb where you can draw your graphs, we also may use Telegraf to speed some integrations since InfluxData are the builders of Influxdb and Telegraf. 
 <BR>We draw our standard graphs for each of the metrics we support but please feel free to personalize your own graphics.
 
 <BR>Please Consult our wiki if you wish to contribute with new metrics [https://github.com/ajcpereira/observIT.wiki.git](https://github.com/ajcpereira/observIT/wiki/Development-Rules-%E2%80%90-New-Function-using-ssh)
@@ -20,7 +20,7 @@ This is built on a virtual appliance which can be found here:
 <BR>You can make OS updates for security reasons also the "setup" command.
 
 ## Licensing
-Regarding the 2 mention applications be aware of their licenses if you wish to use in your organization.
+Regarding the 3 mention applications be aware of their licenses if you wish to use in your organization.
 We install both but they are not part of the code of the ObservIT, so you should check your policies or maybe you already have them in your organization and you just need to change the configfile to use your own:
 
 |Components		|Licensing                                                  |
@@ -31,6 +31,7 @@ We install both but they are not part of the code of the ObservIT, so you should
 |Python			|https://opensource.org/license/python-2-0                  |
 |Grafana		|https://grafana.com/licensing/                             |
 |Influxdb		|https://github.com/influxdata/influxdb/blob/master/LICENSE |
+|Telegraf   |https://github.com/influxdata/telegraf/blob/master/LICENSE |
 
 ## Technical Section
 ### Requirements

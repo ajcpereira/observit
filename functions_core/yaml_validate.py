@@ -15,7 +15,11 @@ import os,logging,sys
 #                                                                               #
 #################################################################################
 
+########## LIST OF RESOURCES_CONFIGS THAT RUN ONLY ONCE
 
+excluded_resources_types = ["telegraf_local_cpu","telegraf_vmware"]
+ 
+########## LIST OF RESOURCES_CONFIGS THAT RUN ONLY ONCE
 #################################################################################
 #                                                                               #
 #                       PROCEDURE DIVISION                                      #
@@ -168,7 +172,8 @@ def create_metric_ip_dicts(config):
                     "func": AllowedMetrics.get_func_name(system.resources_types, metric.name),
                     **global_parms.model_dump(),
                     "repo_org": "observit",
-                    "repo_bucket": "observit"
+                    "repo_bucket": "observit",
+                    "excluded_resources_types_run": 1
                 }
                 result_dicts.append(result_dict)
               

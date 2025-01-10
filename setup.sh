@@ -64,7 +64,7 @@ function change_network {
                 echo $IP_CIDR >> /tmp/pos
                 # Update the network configuration file
                 if [ -f /tmp/network_file.tmp ]; then
-                   rm /tmp/network_file.tmp
+                   rm -f /tmp/network_file.tmp
                 fi
                 bash -c "cat > /tmp/network_file.tmp <<EOF
 network:

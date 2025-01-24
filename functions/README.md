@@ -10,21 +10,21 @@ Security: The user must be created previously and the public key must exist in t
   #### fs_io<br>
 
     Reports the "svctm", "r_await", "w_await", "r/s" and "w/s" for each filesystem/dm/rawdevice
-    sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/CentricStor/bin/rdNsdInfos -a"
+    sudo is required: In /etc/sudoers you must have "observit CSTOR = NOPASSWD: /opt/fsc/CentricStor/bin/rdNsdInfos -a"
     If file cafs_iostat exists under the dir tests it will be used instead of real data.
   
   #### drives<br>
 
     Reports the drive occupation for each physical library
-    sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"
+    sudo is required: In /etc/sudoers you must have "observit CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"
   
   #### pvgprofile<br>
     Reports for each PVG the following "Total Medias" "Fault Medias" "Inacessible Medias" "Scratch Medias" "Medias with -10%, -20%, -30%, -40%, -50%, -60%, -70%, -80%, -90% and >90% valid LV's" "Total Cap (GiB)" "Total Used (GiB)"
-    sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"
+    sudo is required: In /etc/sudoers you must have "observit CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"
   
   #### medias<br>
     Reports all medias: "Total Medias" "Total Cap GiB" "Total Val GiB" "Val %" "Total Clean Medias" "Total Ina" "Total Fault"
-    sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"
+    sudo is required: In /etc/sudoers you must have "observit CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"
   
   #### fs<br>
   
@@ -80,7 +80,7 @@ systems:
     resources_types: linux_os
     config:
       parameters:
-          user: fjcollector
+          user: observit
           host_keys: keys/id_rsa
           poll: 1
           use_sudo: no
@@ -105,7 +105,7 @@ systems:
     resources_types: eternus_cs8000
     config:
       parameters:
-          user: fjcollector
+          user: observit
           host_keys: keys/id_rsa
           poll: 1
           use_sudo: no
@@ -132,7 +132,7 @@ global_parameters:
     repository_protocol: tcp
     repository_api_key: TOBEDEFINEDINSETUP
     loglevel: WARNING
-    logfile: logs/fjcollector.log
+    logfile: logs/observit.log
     auto_fungraph: yes
     grafana_api_key: TOBEDEFINEDINSETUP
     grafana_server: grafana

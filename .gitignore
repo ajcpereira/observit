@@ -7,4 +7,4 @@
 **/keys/*
 **/.mypy_cache
 **/.idea/
-**/config/**
+**/config/config.yaml

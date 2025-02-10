@@ -20,6 +20,7 @@
 #                                                                               #
 #################################################################################
 import sys, os, logging, time
+from logging.handlers import RotatingFileHandler
 from threading import Thread, Event
 from functions_core.yaml_validate import *
 from functions_core.grafana_fun import *
@@ -46,6 +47,7 @@ event = Event()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 def run_threaded(**args) -> None:
+    global excluded_resources_types
     
     while True:
         if 'control' in args:
@@ -61,11 +63,20 @@ def run_threaded(**args) -> None:
         else:
             args=args_setup(args)
             event.wait(timeout=args['poll']*60)
-            logging.debug("Will run_thread with %s" % args)
             if event.is_set():
                 logging.debug("#### Exited run_thread ####")
                 break
-            Thread(target=eval(args['func']), kwargs=args).start()
+
+            # This if will check if the excluded resources_types have run and if yes will not run again
+            if args['resources_types'] in excluded_resources_types:
+                if args['excluded_resources_types_run'] == 1:
+                    logging.debug(f"Running excluded_resources_types_run with {args}")
+                    args['excluded_resources_types_run'] = 0
+                    Thread(target=eval(args['func']), kwargs=args).start()
+            # If it is not excluded we will let it run normally in the cycle
+            else:
+                logging.debug("Will run_thread with %s" % args)
+                Thread(target=eval(args['func']), kwargs=args).start()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
@@ -94,7 +105,19 @@ if __name__ == "__main__":
 
 
     ########## BEGIN - Start Logging Facility ###################################
-    logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
+    # Set up log rotation (10MB max file size and 5 backup files)
+    log_file = global_parms['logfile']
+    log_size = 10 * 1024 * 1024  # 10MB
+    backup_count = 5
+    #logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
+    
+    # Create a rotating file handler
+    handler = RotatingFileHandler(log_file, maxBytes=log_size, backupCount=backup_count)
+    handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s'))
+    
+    # Add the handler to the root logger
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(eval("logging." + global_parms['loglevel']))
     ########## END - Start Logging Facility #####################################    
 
     ########## BEGIN - Log configfile start processing ##########################
@@ -126,8 +149,14 @@ if __name__ == "__main__":
 
             for handler in logging.root.handlers[:]:
                 logging.root.removeHandler(handler)
+                
             try:             
-                logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
+                #logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
+                # Reconfigure logging with the updated config
+                handler = RotatingFileHandler(log_file, maxBytes=log_size, backupCount=backup_count)
+                handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s'))
+                logging.getLogger().addHandler(handler)
+                logging.getLogger().setLevel(eval("logging." + global_parms['loglevel']))
             except Exception as msgerr:
                 logging.fatal("Failed to change logging basicConfig %s" % msgerr)
                 sys.exit()
@@ -139,3 +168,76 @@ if __name__ == "__main__":
                 build_dashboards(config)
             logging.info("Configfile reloaded")
             logging.debug("Configfile reloaded")
+            
+#import logging
+#from logging.handlers import RotatingFileHandler
+#import os
+#import time
+#import sys
+#
+#if __name__ == "__main__":
+#
+#    ########## BEGIN FUNCTIONS IN YAML_VALIDATE  ################################    
+#    config, orig_mtime, configfile_running = configfile_read(configfile)
+#    result_dicts, global_parms = create_metric_ip_dicts(config)
+#    ########## END FUNCTIONS IN YAML_VALIDATE  ##################################    
+#
+#    ########## BEGIN - Start Logging Facility ###################################
+#    # Set up log rotation (10MB max file size and 5 backup files)
+#    log_file = global_parms['logfile']
+#    log_size = 10 * 1024 * 1024  # 10MB
+#    backup_count = 5
+#    
+#    # Create a rotating file handler
+#    handler = RotatingFileHandler(log_file, maxBytes=log_size, backupCount=backup_count)
+#    handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s'))
+#    
+#    # Add the handler to the root logger
+#    logging.getLogger().addHandler(handler)
+#    logging.getLogger().setLevel(eval("logging." + global_parms['loglevel']))
+#    ########## END - Start Logging Facility #####################################    
+#
+#    ########## BEGIN - Log configfile start processing ##########################
+#    logging.info("################ Starting Collector ################")
+#    ########## END - Log configfile start processing ############################
+#
+#    logging.debug("Will print the dict that will be used: %s" % result_dicts)
+#
+#    launch_thread(result_dicts)
+#
+#    if config.global_parameters.auto_fungraph:
+#        build_dashboards(config)
+#
+#    while True:
+#        time.sleep(1)
+#
+#        if orig_mtime < os.path.getmtime(configfile_running):
+#            logging.info("Configfile changed, will reload")
+#
+#            event.set()
+#
+#            orig_mtime = os.path.getmtime(configfile_running)
+#            config, orig_mtime, configfile_running = configfile_read(configfile)
+#            result_dicts, global_parms = create_metric_ip_dicts(config)
+#
+#            logging.debug("Configfile changed, will reload with %s" % result_dicts)
+#
+#            for handler in logging.root.handlers[:]:
+#                logging.root.removeHandler(handler)
+#            try:
+#                # Reconfigure logging with the updated config
+#                handler = RotatingFileHandler(log_file, maxBytes=log_size, backupCount=backup_count)
+#                handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s'))
+#                logging.getLogger().addHandler(handler)
+#                logging.getLogger().setLevel(eval("logging." + global_parms['loglevel']))
+#            except Exception as msgerr:
+#                logging.fatal("Failed to change logging basicConfig %s" % msgerr)
+#                sys.exit()
+#
+#            time.sleep(5)
+#            event.clear()
+#            launch_thread(result_dicts)
+#            if config.global_parameters.auto_fungraph:
+#                build_dashboards(config)
+#            logging.info("Configfile reloaded")
+#            logging.debug("Configfile reloaded")

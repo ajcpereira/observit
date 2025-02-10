@@ -28,28 +28,28 @@ setup_offline:
 	echo "##########################################################"
 	@read -p "Press any key to continue"
 
-	mkdir -p /opt/fjcollector/grafana/provisioning
-	mkdir -p /opt/fjcollector/grafana/data/grafana
-	mkdir -p /opt/fjcollector/collector/logs
-	mkdir -p /opt/fjcollector/collector/config
-	mkdir -p /opt/fjcollector/collector/keys
-	mkdir -p /opt/fjcollector/collector/tests
+	mkdir -p /opt/observit/grafana/provisioning
+	mkdir -p /opt/observit/grafana/data/grafana
+	mkdir -p /opt/observit/collector/logs
+	mkdir -p /opt/observit/collector/config
+	mkdir -p /opt/observit/collector/keys
+	mkdir -p /opt/observit/collector/tests
 
-	mkdir -p /opt/fjcollector/influxdb/influxdb
-	mkdir -p /opt/fjcollector/influxdb/influxdb2
-	mkdir -p /opt/fjcollector/influxdb/influxdb2-config
+	mkdir -p /opt/observit/influxdb/influxdb
+	mkdir -p /opt/observit/influxdb/influxdb2
+	mkdir -p /opt/observit/influxdb/influxdb2-config
 
-	chown -R  fjcollector:fjcollector /opt/fjcollector
+	chown -R  observit:observit /opt/observit
 
 	#cp ./install/Dockerfile .
-	#docker build . -t fjcollector:latest
+	#docker build . -t observit:latest
 
 	docker compose up -d
 
-	if [ ! -f /opt/fjcollector/collector/config/config.yaml ]
+	if [ ! -f /opt/observit/collector/config/config.yaml ]
 	then
-	        cp config/config.yaml /opt/fjcollector/collector/config
-	        chown fjcollector:fjcollector /opt/fjcollector/collector/config/config.yaml
+	        cp config/config.yaml /opt/observit/collector/config
+	        chown observit:observit /opt/observit/collector/config/config.yaml
 	fi
 
 	#rm Dockerfile
@@ -62,35 +62,35 @@ setup_offline:
 	$(MAKE) update_datasource
 	$(MAKE) update_theme
 
-	docker compose stop fjcollector
-	docker compose start fjcollector
+	docker compose stop observit
+	docker compose start observit
 
 .ONESHELL:
 setup:
 
-	mkdir -p /opt/fjcollector/grafana/provisioning
-	mkdir -p /opt/fjcollector/grafana/data/grafana
-	mkdir -p /opt/fjcollector/collector/logs
-	mkdir -p /opt/fjcollector/collector/config
-	mkdir -p /opt/fjcollector/collector/keys
-	mkdir -p /opt/fjcollector/collector/tests
+	mkdir -p /opt/observit/grafana/provisioning
+	mkdir -p /opt/observit/grafana/data/grafana
+	mkdir -p /opt/observit/collector/logs
+	mkdir -p /opt/observit/collector/config
+	mkdir -p /opt/observit/collector/keys
+	mkdir -p /opt/observit/collector/tests
 
-	mkdir -p /opt/fjcollector/influxdb/influxdb
-	mkdir -p /opt/fjcollector/influxdb/influxdb2
-	mkdir -p /opt/fjcollector/influxdb/influxdb2-config
+	mkdir -p /opt/observit/influxdb/influxdb
+	mkdir -p /opt/observit/influxdb/influxdb2
+	mkdir -p /opt/observit/influxdb/influxdb2-config
 
-	chown -R  fjcollector:fjcollector /opt/fjcollector
+	chown -R  observit:observit /opt/observit
 
 	cp ./install/Dockerfile .
 
-	docker build . -t fjcollector:latest
+	docker build . -t observit:latest
 
 	docker compose up -d
 
-	if [ ! -f /opt/fjcollector/collector/config/config.yaml ]
+	if [ ! -f /opt/observit/collector/config/config.yaml ]
 	then
-	        cp config/config.yaml /opt/fjcollector/collector/config
-	        chown fjcollector:fjcollector /opt/fjcollector/collector/config/config.yaml
+	        cp config/config.yaml /opt/observit/collector/config
+	        chown observit:observit /opt/observit/collector/config/config.yaml
 	fi
 
 	rm Dockerfile
@@ -103,8 +103,8 @@ setup:
 	$(MAKE) update_datasource
 	$(MAKE) update_theme
 
-	docker compose stop fjcollector
-	docker compose start fjcollector
+	docker compose stop observit
+	docker compose start observit
 
 .ONESHELL:
 stop:
@@ -118,10 +118,10 @@ update_os:
 remove:
 	docker compose rm
 	docker image rm grafana/grafana-enterprise
-	docker image rm fjcollector
+	docker image rm observit
 	docker image rm influxdb
-	rm /opt/fjcollector/influxdb/influxdb2/influxd.bolt
-	rm /opt/fjcollector/influxdb/influxdb2/influxd.sqlite
+	rm /opt/observit/influxdb/influxdb2/influxd.bolt
+	rm /opt/observit/influxdb/influxdb2/influxd.sqlite
 
 .ONESHELL:
 start:
@@ -133,24 +133,24 @@ start:
 update_logins:
 	@
 	echo "Going to reset admin password for grafana"
-	@docker exec fjcollector-grafana-1 grafana cli admin reset-admin-password admin
+	@docker exec observit-grafana-1 grafana cli admin reset-admin-password admin
 	echo "##########################################################"
 	echo "# Reset User and created service account for grafana     #"
 	echo "# Please change the admin password we only               #"
 	echo "# require the API token                                  #"
 	echo "##########################################################"
 	echo "Going to create service account for grafana"
-	@RCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts -H "Content-Type: application/json" -d '{"name":"fjcollector", "role":"Admin"}' 2>/dev/null | cut -d ":"  -f 2 | cut -d "," -f 1);
+	@RCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts -H "Content-Type: application/json" -d '{"name":"observit", "role":"Admin"}' 2>/dev/null | cut -d ":"  -f 2 | cut -d "," -f 1);
 	echo $$RCURL
 
 	if [[ $$RCURL =~ ^[0-9] ]]
 	then
 	        echo "Will create token"
-	    @TCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts/$$RCURL/tokens -H "Content-Type: application/json" -d '{"name":"fjcollector"}' 2>/dev/null | cut -d "," -f 3| cut -d ":" -f 2 | tr -d \} | tr -d \");
+	    @TCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts/$$RCURL/tokens -H "Content-Type: application/json" -d '{"name":"observit"}' 2>/dev/null | cut -d "," -f 3| cut -d ":" -f 2 | tr -d \} | tr -d \");
 	        echo $$TCURL
-	        if [ -f /opt/fjcollector/collector/config/config.yaml ] && [[ ! -z $TCURL ]]
+	        if [ -f /opt/observit/collector/config/config.yaml ] && [[ ! -z $TCURL ]]
 	        then
-	                sed -i "s/grafana_api_key\:.*/grafana_api_key\: $$TCURL/" /opt/fjcollector/collector/config/config.yaml
+	                sed -i "s/grafana_api_key\:.*/grafana_api_key\: $$TCURL/" /opt/observit/collector/config/config.yaml
 	                echo "Updated Config File with grafana api key"
 	        else
 	                echo "Failed to find the config file or get the token"
@@ -164,16 +164,16 @@ update_logins:
 
 
 	echo "Going to create setup for influxdb"
-	@docker exec fjcollector-influxdb-1 influx setup --org fjcollector --bucket fjcollector --username admin --password admin123 --retention 157w --force
-	@TOKEN=$$(docker exec fjcollector-influxdb-1 influx auth ls | grep fjcollector | cut -f3)
+	@docker exec observit-influxdb-1 influx setup --org observit --bucket observit --username admin --password admin123 --retention 157w --force
+	@TOKEN=$$(docker exec observit-influxdb-1 influx auth ls | grep observit | cut -f3)
 	echo $$TOKEN
 	if [[ -z $$TOKEN ]]
 	then
 	        echo "Will create token"
-	        @TOKEN=$$(docker exec fjcollector-influxdb-1 influx auth create -o fjcollector --all-access --description "fjcollector" | grep fjcollector | cut -f3)
+	        @TOKEN=$$(docker exec observit-influxdb-1 influx auth create -o observit --all-access --description "observit" | grep observit | cut -f3)
 	        if [[ ! -z $$TOKEN ]]
 	        then
-	                sed -i "s/repository_api_key\:.*/repository_api_key\: $$TOKEN/" /opt/fjcollector/collector/config/config.yaml
+	                sed -i "s/repository_api_key\:.*/repository_api_key\: $$TOKEN/" /opt/observit/collector/config/config.yaml
 	                echo "##############################################"
 	                echo "# Please change the default admin pwd        #"
 	                echo "# admin:admin123 we only required API token  #"
@@ -191,7 +191,7 @@ update_logins:
 update_theme:
 	@
 	#MYVAR=$$(docker inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
-	#MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fjcollector-grafana-1 2> /dev/null)
+	#MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' observit-grafana-1 2> /dev/null)
 	RCURL=$$(curl -X PUT http://admin:admin@localhost/api/org/preferences -H "Content-Type: application/json" -d '{ "theme": "light" }' 2>/dev/null)
 
 	if [ "$$RCURL" == "{\"message\":\"Preferences updated\"}" ]
@@ -204,16 +204,16 @@ update_theme:
 .ONESHELL:
 update_datasource:
 	@
-	#MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fjcollector-grafana-1 2> /dev/null)
+	#MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' observit-grafana-1 2> /dev/null)
 	MYINFLUX="influxdb:8086"
 
 
-	@TOKEN=$$(docker exec fjcollector-influxdb-1 influx auth ls | grep fjcollector | cut -f3)
+	@TOKEN=$$(docker exec observit-influxdb-1 influx auth ls | grep observit | cut -f3)
 	echo $$TOKEN
 
 	if [[ ! -z $$TOKEN ]]
 	then
-	        RCURL=$$(curl -X POST http://admin:admin@localhost/api/datasources -H "Content-Type: application/json" -d '{"name": "InfluxDB","type": "influxdb","access": "proxy","url": "http://influxdb:8086","jsonData": {"dbName": "fjcollector","httpMode": "GET","httpHeaderName1": "Authorization"},"secureJsonData": {"httpHeaderValue1": "Token '$$TOKEN'"},"isDefault": true}' 2>/dev/null)
+	        RCURL=$$(curl -X POST http://admin:admin@localhost/api/datasources -H "Content-Type: application/json" -d '{"name": "InfluxDB","type": "influxdb","access": "proxy","url": "http://influxdb:8086","jsonData": {"dbName": "observit","httpMode": "GET","httpHeaderName1": "Authorization"},"secureJsonData": {"httpHeaderValue1": "Token '$$TOKEN'"},"isDefault": true}' 2>/dev/null)
 	        TEST=$$(grep 'Datasource added' <<< $$RCURL)
 	else
 	        echo "No Token was found, please check if the setup of the Influxdb was finished sucessfully"
@@ -229,16 +229,16 @@ update_datasource:
 .ONESHELL:
 build_collector:
 
-	docker compose stop fjcollector
+	docker compose stop observit
 
-	docker compose images rm fjcollector-fjcollector-1
+	docker compose images rm observit-observit-1
 
 	cp ./install/Dockerfile .
 
-	docker build . -t fjcollector:latest
-	docker compose create fjcollector
+	docker build . -t observit:latest
+	docker compose create observit
 
-	docker compose start fjcollector
+	docker compose start observit
 
 	rm Dockerfile
 
@@ -247,6 +247,6 @@ env_dev_ip:
 	@
 	MYVAR=$$(ip a | grep eth0 | grep inet | cut -f 1 -d"/" | cut -f 2 -d"t" )
 	echo "$$MYVAR"
-	sed -i "s/ip\:.*/ip\: $$MYVAR/" /opt/fjcollector/collector/config/config.yaml
-	sed -i "s/ip_bastion\:.*/ip_bastion\: $$MYVAR/" /opt/fjcollector/collector/config/config.yaml
-	sed -i "s/bastion\:.*/bastion\: $$MYVAR/" /opt/fjcollector/collector/config/config.yaml
+	sed -i "s/ip\:.*/ip\: $$MYVAR/" /opt/observit/collector/config/config.yaml
+	sed -i "s/ip_bastion\:.*/ip_bastion\: $$MYVAR/" /opt/observit/collector/config/config.yaml
+	sed -i "s/bastion\:.*/bastion\: $$MYVAR/" /opt/observit/collector/config/config.yaml

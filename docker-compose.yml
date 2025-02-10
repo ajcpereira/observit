@@ -1,12 +1,13 @@
 services:
-  fjcollector:
-    image: "fjcollector:latest"
+  observit:
+    image: "observit:latest"
     restart: unless-stopped
     volumes:
-      - /opt/fjcollector/collector/logs:/collector/logs
-      - /opt/fjcollector/collector/config:/collector/config
-      - /opt/fjcollector/collector/keys:/collector/keys
-      - /opt/fjcollector/collector/tests:/collector/tests
+      - /opt/observit/collector/logs:/collector/logs
+      - /opt/observit/collector/config:/collector/config
+      - /opt/observit/collector/keys:/collector/keys
+      - /opt/observit/collector/tests:/collector/tests
+      - /opt/observit/telegraf/config/telegraf.conf:/collector/telegraf/telegraf.conf
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
 #      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
@@ -22,8 +23,8 @@ services:
     ports:
     - "443:3000/tcp"
     volumes:
-      - /opt/fjcollector/grafana/etc/:/etc/grafana/
-      - /opt/fjcollector/grafana/data/grafana:/var/lib/grafana/
+      - /opt/observit/grafana/etc/:/etc/grafana/
+      - /opt/observit/grafana/data/grafana:/var/lib/grafana/
     user: "1000"
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
@@ -40,10 +41,10 @@ services:
     ports:
     - "8086:8086/tcp"
     volumes:
-      - /opt/fjcollector/influxdb/influxdb:/var/lib/influxdb
-      - /opt/fjcollector/influxdb/influxdb2:/var/lib/influxdb2
-      - /opt/fjcollector/influxdb/influxdb2-config:/etc/influxdb
-      - /opt/fjcollector/influxdb/influxdb2-ssl:/etc/ssl
+      - /opt/observit/influxdb/influxdb:/var/lib/influxdb
+      - /opt/observit/influxdb/influxdb2:/var/lib/influxdb2
+      - /opt/observit/influxdb/influxdb2-config:/etc/influxdb
+      - /opt/observit/influxdb/influxdb2-ssl:/etc/ssl
     user: "1000"
     environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
@@ -51,6 +52,25 @@ services:
 #      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
       - INFLUXD_TLS_CERT=/etc/ssl/influxdb.crt
       - INFLUXD_TLS_KEY=/etc/ssl/influxdb.key
+    logging:
+       options:
+         max-size: "10m"
+         max-file: 3
+
+  telegraf:
+    image: "telegraf:latest"
+    restart: unless-stopped
+    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/observit/telegraf/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    user: "1000"
+    command: telegraf --watch-config poll
+#    environment:
+#      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
+#      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
+#      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
+#      - INFLUXD_TLS_CERT=/etc/ssl/influxdb.crt
+#      - INFLUXD_TLS_KEY=/etc/ssl/influxdb.key
     logging:
        options:
          max-size: "10m"

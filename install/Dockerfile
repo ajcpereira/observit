@@ -7,7 +7,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN apt-get update \
 	&& apt-get install -y \
-	python3 python3-venv python3-pip libsnmp-dev snmp-mibs-downloader \
+	python3 python3-venv python3-pip libsnmp-dev snmp-mibs-downloader vim \
 	&& apt-get clean
 
 #ENV HTTP_PROXY="http://20.220.3.113:8080"

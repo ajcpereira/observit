@@ -34,6 +34,8 @@ function change_network {
         "Gateway:" 2 1 "" 2 25 25 30 \
         "DNS (Comma separated):" 3 1 "" 3 25 25 30 \
         2>$TEMP_FILE
+    
+    interface=`ip -o link show | grep -v lo | awk '{print $2}' | sed 's/://g' | head -1`
 
     # Check if ESC was pressed (exit status 1 means ESC or Cancel was pressed)
     if [[ $? -ne 0 ]]; then
@@ -70,7 +72,7 @@ function change_network {
 network:
   version: 2
   ethernets:
-    eth0:
+    $interface:
       addresses: [$IP_CIDR]
       routes:
        - to: default

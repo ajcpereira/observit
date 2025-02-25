@@ -21,6 +21,7 @@ RUN mkdir functions_core
 RUN mkdir install
 RUN mkdir keys
 RUN mkdir telegraf
+RUN mkdir license
 
 ADD config config
 ADD functions functions

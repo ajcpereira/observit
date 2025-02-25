@@ -472,7 +472,7 @@ def eternus_cs8000_fc(**args):
         stdoutcmd1 = ssh.ssh_run(cmd1)
         logging.debug("Output of Command Line 1:\n%s" % stdoutcmd1.stdout)
         
-        cmd2="lsscsi | awk '{ print $1, $2 }' | grep disk | grep -v \"\[1:\" "
+        cmd2="lsscsi | awk '{ print $1, $2 }' | grep disk | grep -v \"[1:\" "
         logging.debug("Command Line 2 - %s" % cmd2)
         stdoutcmd2 = ssh.ssh_run(cmd2)
         logging.debug("Output of Command Line 2:\n%s" % stdoutcmd2.stdout)

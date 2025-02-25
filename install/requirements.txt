@@ -8,3 +8,4 @@ grafanalib
 influxdb_client
 easysnmp
 toml
+cryptography

@@ -113,8 +113,26 @@ make_dhcp() {
     sudo netplan apply
 }
 
+genkey(){
+    DEVICE=$(ip -o link show | grep -v lo | awk '{ print $2 }' | sed 's/://g' | head -1)
+    IP=$(ip -4 addr show $DEVICE | grep inet | awk '{ print $2 }'| cut -d'/' -f1 | sed 's/\.//g')
+    MAC=$(ip link show $DEVICE | awk '/ether/ {print $2}'| sed 's/://g')
+
+    # Display summary of the key
+    dialog --title "Key to generate License" --msgbox \
+            "KEY: $MAC$IP \n\nIt will also be available in /tmp/req_licensekey.obs" 10 50
+
+    echo "$MAC$IP" > /tmp/req_licensekey.obs
+}
+
 build_collector() {
     cd /home/observit/observit
+
+    DEVICE=$(ip -o link show | grep -v lo | awk '{ print $2 }' | sed 's/://g' | head -1)
+    IP=$(ip -4 addr show $DEVICE | grep inet | awk '{ print $2 }'| cut -d'/' -f1 | sed 's/\.//g')
+    MAC=$(ip link show $DEVICE | awk '/ether/ {print $2}'| sed 's/://g')
+    INTERFACE=$MAC$IP
+    export INTERFACE
 
 	docker compose stop observit
 
@@ -191,7 +209,8 @@ while true; do
     5 "Enable DHCP" \
     6 "Change timezone" \
     7 "Build Container" \
-    8 "Exit" 3>&1 1>&2 2>&3 3>&-)
+    8 "GenKey" \
+    9 "Exit" 3>&1 1>&2 2>&3 3>&-)
     
     case $CHOICE in
         1)
@@ -216,6 +235,9 @@ while true; do
             build_collector
             ;;
         8)
+            genkey
+            ;;
+        9)
             clear
             break
             ;;

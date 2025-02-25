@@ -1,5 +1,7 @@
 services:
   observit:
+    environment:
+      - INTERFACE=${INTERFACE}
     image: "observit:latest"
     restart: unless-stopped
     volumes:
@@ -7,6 +9,7 @@ services:
       - /opt/observit/collector/config:/collector/config
       - /opt/observit/collector/keys:/collector/keys
       - /opt/observit/collector/tests:/collector/tests
+      - /opt/observit/collector/license:/collector/license
       - /opt/observit/telegraf/config/telegraf.conf:/collector/telegraf/telegraf.conf
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"

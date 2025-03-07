@@ -64,7 +64,7 @@ def create_system_dashboard(sys, config):
                 panels = panels + res_panel
             case "eternus_cs8000":
                 y_pos, res_panel = graph_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], y_pos)
-                templating = create_dashboard_vars(res['data'])
+                templating = graph_eternus_cs8000_dashboard_vars(res['data'])
                 panels = panels + res_panel
             case "powerstore":
                 y_pos, res_panel = graph_powerstore(str(sys['system']), str(res['name']), res['data'], y_pos)
@@ -74,16 +74,24 @@ def create_system_dashboard(sys, config):
                 templating = graph_eternus_dx_dashboard_vars(str(sys['system']), res['data'])
                 panels = panels + res_panel
 
+    links_panel = [DashboardLink(
+        asDropdown=True,
+        type="dashboards",
+        title="Menu",
+        keepTime=False,
+    )]
+
     my_dashboard = Dashboard(
         title="System " + sys['system'] + " dashboard",
-        description="fjcollector auto generated dashboard",
+        description="observit auto generated dashboard",
         tags=[
-            sys['system'],
+            sys['system'],"observit",
         ],
         timezone="browser",
         refresh="1m",
         panels=panels,
         templating=Templating(templating),
+        links=links_panel,
     ).auto_panel_ids()
 
     return my_dashboard
@@ -235,7 +243,7 @@ def create_title_panel(system_name, panel_title=""):
     return panel
 
 
-def create_dashboard_vars(data):
+def graph_eternus_cs8000_dashboard_vars(data):
     tpl_lst = []
 
     for metric in data:
@@ -2313,15 +2321,23 @@ def create_main_observit_dashboard(data):
                 except Exception as e:
                     logging.debug(f"Error processing {system}, {host} for {resource_type}: {e}")
 
+    links_panel = [DashboardLink(
+        asDropdown=True,
+        type="dashboards",
+        title="Menu",
+        keepTime=False,
+    )]
+
     my_dashboard = Dashboard(
-        title="ObservIT Land Page",
-        description="observIT auto generated dashboard",
-        tags="observIT main",
+        title="Home observit",
+        description="observIT home dashboard",
+        tags=["observit"],
         timezone="browser",
         refresh="1m",
         time= Time("now-12M", "now+3M"),
         panels=panels,
         templating=Templating(templating),
+        links=links_panel,
     ).auto_panel_ids()
  
 

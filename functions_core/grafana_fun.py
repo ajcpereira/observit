@@ -71,7 +71,7 @@ def create_system_dashboard(sys, config):
                 panels = panels + res_panel
             case "eternus_dx":
                 y_pos, res_panel = graph_eternus_dx(str(sys['system']), str(res['name']), res['data'], y_pos)
-                templating = graph_eternus_dx_dashboard_vars(res['data'])
+                templating = graph_eternus_dx_dashboard_vars(str(sys['system']), res['data'])
                 panels = panels + res_panel
 
     my_dashboard = Dashboard(
@@ -2179,21 +2179,22 @@ def graph_eternus_dx_temp(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def graph_eternus_dx_dashboard_vars(data):
+def graph_eternus_dx_dashboard_vars(system, data):
     tpl_lst = []
 
     for metric in data:
+        host = metric['hosts'][0]
         match metric['metric']:
             case "tppool":
                 tpl_lst = tpl_lst + [Template(
                     # dataSource="default",
                     name='tpp',
                     label='tpp',
-                    query='SHOW TAG VALUES WITH KEY = \"tppool_nr\"',
+                    query=f"SHOW TAG VALUES WITH KEY = \"tppool_nr\" WHERE \"system\"::tag = '{system}'",
                     type='query',
                     includeAll=True,
                     multi=True,
-                    allValue=True,
+                    allValue="",
                     default='All',
                     refresh=2,
                     hide=HIDE_VARIABLE,
@@ -2296,20 +2297,12 @@ def create_main_observit_dashboard(data):
         graph_function_name = f"graph_{resource_type}_overview"
         logging.debug(f" I Will calll{graph_function_name} ")   
         
+        panels.append(RowPanel(title=f"Storage Capacity {resource_type}  ", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
+
         for system, hosts in systems.items():
-            # logging.debug(f"Calling function {graph_function_name}_total({system})")
-            # try:
-            #     graph_function = globals().get(f"{graph_function_name}_total")
-            #     if graph_function:
-            #         y_pos, panel = graph_function(system, "Eternus Total", y_pos)
-            #         panels = panels + panel
-            #     else:
-            #         raise ValueError(f"Function '{graph_function_name}' not found.")
-            # except Exception as e:
-            #     logging.debug(f"Error processing {system}, {host} for {resource_type}: {e}")
+
+            logging.debug(f"Calling function {graph_function_name}({system})")
             for host in hosts:
-                panels.append(RowPanel(title="Storage Capacity per host", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
-                logging.debug(f"Calling function {graph_function_name}({system},{host})")
                 try:
                     graph_function = globals().get(graph_function_name)
                     if graph_function:
@@ -3574,4 +3567,3 @@ def graph_powerstore_overview(system, host, y_pos):
     pos = pos + 14
     
     return pos, panels_list
-

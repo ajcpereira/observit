@@ -17,6 +17,13 @@ class SshConnect():
         if not len(SshConnect.active_sessions) == 0:
             logging.debug(f"Existing sessions are not empty {SshConnect.active_sessions}")
             for value in SshConnect.active_sessions:
+                try:
+                    if value[4].ssh.is_connected:
+                        logging.debug(f"Session is connected {value[4]}")
+                except Exception as msgerror:
+                    logging.error(f"Failed to get session is connected with msg: {msgerror}")
+                    raise Exception(f"Failed to get session is connected with msg: {msgerror}")
+            
                 if abs(timestamp_now - value[5]) <= 55 and value[4].ssh.is_connected:
                     logging.debug(f"Still a valid session with time below 55s {abs(timestamp_now - value[5])} and is_connected for session {value}")
                     keep_sessions.append(value)

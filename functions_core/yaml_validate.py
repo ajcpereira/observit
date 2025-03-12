@@ -89,7 +89,12 @@ class AllowedMetrics:
 class Ip(BaseModel):
     ip: IPvAnyAddress
     alias: Optional[StrictStr] = None
-    ip_snmp_community: Optional[StrictStr] = None
+    ip_user: Optional[StrictStr] = Field(None)
+    ip_snmp_community:Optional[str] = Field("public", max_length=100)
+    ip_snmp_version: Optional[Literal['1', '2', '3']] = Field("1")
+    ip_snmp_user:Optional[StrictStr] = Field(None) 
+    ip_snmp_password:Optional[Base64Str] = Field(None)
+    ip_snmp_auth_protocol:Optional[Literal['MD5', 'SHA']] = Field(None)
     ip_use_sudo: Optional[bool] = None
     ip_host_keys: Optional[str] = Field(None, max_length=100)
     ip_bastion: Optional[IPvAnyAddress] = Field(None)
@@ -107,7 +112,11 @@ class Parameters(BaseModel):
     host_keys: Optional[str] = Field(None, max_length=100)
     poll: PositiveInt = Field(..., ge=1, le=1440)
     use_sudo: Optional[bool] = None
-    snmp_community:Optional[str] = Field(None, max_length=100)
+    snmp_community:Optional[str] = Field("public", max_length=100)
+    snmp_version: Optional[Literal['1', '2', '3']] = Field(None)
+    snmp_user:Optional[StrictStr] = Field(None) 
+    snmp_password:Optional[Base64Str] = Field(None)
+    snmp_auth_protocol:Optional[Literal['MD5', 'SHA']] = Field(None)
     bastion: Optional[IPvAnyAddress] = Field(None)
     ism_server: Optional[IPvAnyAddress] = Field(None)
     ism_password: Optional[str] = Field(None)

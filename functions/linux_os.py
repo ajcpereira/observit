@@ -33,10 +33,10 @@ def linux_os_cpu(**args):
         logging.debug("linux_os_cpu: Connecting to remote host - %s", str(args['ip']))
         logging.debug("linux_os_cpu: Executing command - %s", STR_CMD)
 
-        ssh = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
-        stdout = ssh.ssh_run(STR_CMD)
+        ssh = SshConnect(str(args['ip']), bastion, args['user'], host_keys)
+        stdout = ssh.run(STR_CMD)
         response = stdout.stdout
-        ssh.ssh_del()
+        ssh.rm()
 
         # int_timestamp = int(time.time_ns())
         int_timestamp = int(time.time())
@@ -92,10 +92,10 @@ def linux_os_mem(**args):
     logging.debug("linux_os_mem: Executing command - %s", STR_CMD)
 
     try:
-        ssh = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
-        stdout = ssh.ssh_run(STR_CMD)
+        ssh = SshConnect(str(args['ip']), bastion, args['user'], host_keys)
+        stdout = ssh.run(STR_CMD)
         response = stdout.stdout
-        ssh.ssh_del()
+        ssh.rm()
 
         int_timestamp = int(time.time())
         logging.debug("linux_os_mem: Command Result - %s", response)
@@ -150,10 +150,10 @@ def linux_os_fs(**args):
     logging.debug("linux_os_fs: Executing command - %s", STR_CMD)
 
     try:
-        sshcon = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
-        stdout = sshcon.ssh_run(STR_CMD)
+        sshcon = SshConnect(str(args['ip']), bastion, args['user'], host_keys)
+        stdout = sshcon.run(STR_CMD)
         response = stdout.stdout
-        sshcon.ssh_del()
+        sshcon.rm()
 
         int_timestamp = int(time.time())
         logging.debug("linux_os_fs: Command Result - %s", response)
@@ -211,10 +211,10 @@ def linux_os_net(**args):
     logging.debug("linux_os_net: Executing command - %s", STR_CMD)
 
     try:
-        sshcon = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
-        stdout = sshcon.ssh_run(STR_CMD)
+        sshcon = SshConnect(str(args['ip']), bastion, args['user'], host_keys)
+        stdout = sshcon.run(STR_CMD)
         response = stdout.stdout
-        sshcon.ssh_del()
+        sshcon.rm()
 
         int_timestamp = int(time.time())
         logging.debug("linux_os_net: Command Result linux_os_net - %s", response)

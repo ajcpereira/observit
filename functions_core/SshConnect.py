@@ -1,7 +1,7 @@
-import fabric2, logging, tempfile, time, threading, paramiko
+import fabric2, logging, tempfile, time, threading
 
 # Will be used for a multi-thread environment to manage ssh connections
-class Secure_Connect():
+class SshConnect():
 
     # Will keep track of ssh sessions, if parameters are the same will not open new, avoiding exhausting ssh sessions in servers
     active_sessions = []
@@ -13,10 +13,17 @@ class Secure_Connect():
         timestamp_now = time.time()
         keep_sessions = []
         valid_session = []
-        logging.debug(f"Managing sessions for this session keys:{session_key} and this content for active_sessions {Secure_Connect.active_sessions}")
-        if not len(Secure_Connect.active_sessions) == 0:
-            logging.debug(f"Existing sessions are not empty {Secure_Connect.active_sessions}")
-            for value in Secure_Connect.active_sessions:
+        logging.debug(f"Managing sessions for this session keys:{session_key} and this content for active_sessions {SshConnect.active_sessions}")
+        if not len(SshConnect.active_sessions) == 0:
+            logging.debug(f"Existing sessions are not empty {SshConnect.active_sessions}")
+            for value in SshConnect.active_sessions:
+                try:
+                    if value[4].ssh.is_connected:
+                        logging.debug(f"Session is connected {value[4]}")
+                except Exception as msgerror:
+                    logging.error(f"Failed to get session is connected with msg: {msgerror}")
+                    raise Exception(f"Failed to get session is connected with msg: {msgerror}")
+            
                 if abs(timestamp_now - value[5]) <= 55 and value[4].ssh.is_connected:
                     logging.debug(f"Still a valid session with time below 55s {abs(timestamp_now - value[5])} and is_connected for session {value}")
                     keep_sessions.append(value)
@@ -34,8 +41,8 @@ class Secure_Connect():
                         invalid_session.ssh.close()
                         del invalid_session.ssh
                         logging.debug("Closed session on Class Secure_connect - %s" % invalid_session)
-            Secure_Connect.active_sessions = keep_sessions
-            logging.debug(f"The active sessions are:\n{Secure_Connect.active_sessions}")
+            SshConnect.active_sessions = keep_sessions
+            logging.debug(f"The active sessions are:\n{SshConnect.active_sessions}")
             if valid_session:
                 logging.debug(f"will pass session {valid_session}")
                 return valid_session
@@ -48,10 +55,10 @@ class Secure_Connect():
         session_key = [param_ip, bastion, user, host_keys, self, time.time()]
 
         logging.debug(f"my session_key is {session_key[:4]}")
-        logging.debug(f"my existing sessions are {Secure_Connect.active_sessions}")
+        logging.debug(f"my existing sessions are {SshConnect.active_sessions}")
         
-        with Secure_Connect.global_lock:
-            ret_value = Secure_Connect.manage_sessions(session_key)
+        with SshConnect.global_lock:
+            ret_value = SshConnect.manage_sessions(session_key)
             logging.debug(f"Returned value from function is {ret_value}")
             if ret_value:
                 logging.debug(f"Will return value:{ret_value}")
@@ -143,7 +150,7 @@ class Secure_Connect():
                             del self.ssh_bastion
                         del self
                         raise Exception(f"Failed to open connection through bastion with msg: {msgerror}")
-                    Secure_Connect.active_sessions.append(session_key)
+                    SshConnect.active_sessions.append(session_key)
                 # open connection without bastion
                 else:
                     logging.debug("Class Secure_connect (no bastion) Started")
@@ -170,11 +177,11 @@ class Secure_Connect():
                             del self.ssh
                         del self
                         raise Exception(f"Failed the connection for srv (no bastion) with msg: {msgerror}")
-                    Secure_Connect.active_sessions.append(session_key)
+                    SshConnect.active_sessions.append(session_key)
                      
 
-    def ssh_run(self, cmd):
-        with Secure_Connect.global_lock:
+    def run(self, cmd):
+        with SshConnect.global_lock:
             try:
                 logging.debug("Execute command with session %s" % self)
                 stdout = self.ssh.run(cmd, hide=True, timeout=30, warn=True)
@@ -190,6 +197,7 @@ class Secure_Connect():
                 del self
                 raise Exception(f"Failed the cmd execution with msg: {msgerror}")
                 # after run the caller should call the ssh_del() method so we can check which connections are still valid
-    def ssh_del(self):
-        with Secure_Connect.global_lock:
-            Secure_Connect.manage_sessions(None)
+                
+    def rm(self):
+        with SshConnect.global_lock:
+            SshConnect.manage_sessions(None)

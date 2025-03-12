@@ -30,6 +30,33 @@ def args_setup(args):
     else:
          snmp_community=None
 
+    if args['ip_snmp_version']:
+         snmp_version=str(args['ip_snmp_version'])
+    elif args['snmp_version']:
+         snmp_version=str(args['snmp_version'])
+    else:
+         snmp_version=None
+
+    if args['ip_snmp_user']:
+         snmp_user=str(args['ip_snmp_user'])
+    elif args['snmp_user']:
+         snmp_user=str(args['snmp_user'])
+    else:
+         snmp_user=None
+
+    if args['ip_snmp_password']:
+         snmp_password=str(args['ip_snmp_password'])
+    elif args['snmp_password']:
+         snmp_password=str(args['snmp_password'])
+    else:
+         snmp_password=None
+
+    if args['ip_snmp_auth_protocol']:
+         snmp_auth_protocol=str(args['ip_snmp_auth_protocol'])
+    elif args['snmp_auth_protocol']:
+         snmp_auth_protocol=str(args['snmp_auth_protocol'])
+    else:
+         snmp_auth_protocol=None
 
     if args['ip_redfish_url']:
          redfish_url=str(args['ip_redfish_url'])
@@ -87,7 +114,15 @@ def args_setup(args):
     else:
          powerstore_unsecured=None
 
+    if args['ip_user']:
+         user=str(args['ip_user'])
+    elif args['user']:
+         user=str(args['user'])
+    else:
+         user=None
+
     args['bastion']=bastion
+    args['user']=user
     args['host_keys']=host_keys
     args['hostname']=hostname
     args['redfish_url']=redfish_url
@@ -99,6 +134,11 @@ def args_setup(args):
     args['powerstore_pwd64']=powerstore_pwd64
     args['powerstore_unsecured']=powerstore_unsecured
     args['snmp_community']=snmp_community
+    args['snmp_version']=snmp_version
+    args['snmp_user']=snmp_user
+    args['snmp_password']=snmp_password
+    args['snmp_auth_protocol']=snmp_auth_protocol
+
     return args
 
 def decode_base64(base64_message):

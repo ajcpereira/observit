@@ -153,6 +153,8 @@ build_collector() {
     docker compose up -d
 
 	rm Dockerfile
+
+    docker system prune -a -f; docker volume prune -a -f; docker image prune -a -f
 }
 
 # Function to manage containers

@@ -36,7 +36,7 @@ def eternus_cs8000_fs_io(**args):
     logging.debug("Command Line 3 - %s" % cmd3)
 
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -44,13 +44,13 @@ def eternus_cs8000_fs_io(**args):
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
-    NONE = ssh.ssh_run(cmd1)
-    NONE = ssh.ssh_run(cmd2)
+    NONE = ssh.run(cmd1)
+    NONE = ssh.run(cmd2)
 
     if flag_test:
          response = cmd3
     else:
-         stdout = ssh.ssh_run(cmd3)
+         stdout = ssh.run(cmd3)
          response = stdout.stdout
 
     timestamp = int(time.time())
@@ -60,7 +60,7 @@ def eternus_cs8000_fs_io(**args):
         return -1
 
     # Close ssh session
-    ssh.ssh_del()
+    ssh.rm()
     logging.debug("Finished core function ssh with args %s" % args)
     
     logging.debug("Output of Command Line 3 - %s" % response)
@@ -121,7 +121,7 @@ def eternus_cs8000_drives(**args):
           logging.warning("You are using test file for Drives, not really data")
 
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -131,15 +131,15 @@ def eternus_cs8000_drives(**args):
     
     if flag_test:
          response = cmd1
-         ssh.ssh_run("ls")
+         ssh.run("ls")
     else:
-         stdout = ssh.ssh_run(cmd1)
+         stdout = ssh.run(cmd1)
          response = stdout.stdout
 
     timestamp = int(time.time())
     
     # Close ssh session
-    ssh.ssh_del()        
+    ssh.rm()        
     logging.debug("Finished core function ssh with args %s" % args)
 
     logging.debug("Output of Command Line 1 - %s" % response)
@@ -221,7 +221,7 @@ def eternus_cs8000_medias(**args):
           logging.warning("You are using test file for Drives, not really data")
 
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -231,15 +231,15 @@ def eternus_cs8000_medias(**args):
     
     if flag_test:
          response = cmd1
-         ssh.ssh_run("ls")
+         ssh.run("ls")
     else:
-         stdout = ssh.ssh_run(cmd1)
+         stdout = ssh.run(cmd1)
          response = stdout.stdout
 
     timestamp = int(time.time())
     
     # Close ssh session
-    ssh.ssh_del()        
+    ssh.rm()        
     logging.debug("Finished core function ssh with args %s" % args)
 
     logging.debug("Output of Command Line 1 - %s" % response)
@@ -329,7 +329,7 @@ def eternus_cs8000_pvgprofile(**args):
           logging.warning("You are using test file for PVG Profile, not really data")
 
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -339,15 +339,15 @@ def eternus_cs8000_pvgprofile(**args):
     
     if flag_test:
          response = cmd1
-         ssh.ssh_run("ls")
+         ssh.run("ls")
     else:
-         stdout = ssh.ssh_run(cmd1)
+         stdout = ssh.run(cmd1)
          response = stdout.stdout
 
     timestamp = int(time.time())
 
     # Close ssh session
-    ssh.ssh_del()
+    ssh.rm()
     logging.debug("Finished core function ssh with args %s" % args)
 
     logging.debug("Output of Command Line 1 - %s" % response)
@@ -456,7 +456,7 @@ def eternus_cs8000_fc(**args):
 
     # Open ssh session
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -469,27 +469,27 @@ def eternus_cs8000_fc(**args):
     try:
         cmd1="for hosthba in `ls /sys/class/fc_host`;do WWN=`cat /sys/class/fc_host/$hosthba/port_name | sed 's/^0x//' | sed 's/../&:/g;s/:$//'`; echo $hosthba $WWN; done"
         logging.debug("Command Line 1 - %s" % cmd1)
-        stdoutcmd1 = ssh.ssh_run(cmd1)
+        stdoutcmd1 = ssh.run(cmd1)
         logging.debug("Output of Command Line 1:\n%s" % stdoutcmd1.stdout)
         
         cmd2="lsscsi | awk '{ print $1, $2 }' | grep disk | grep -v \"[1:\" "
         logging.debug("Command Line 2 - %s" % cmd2)
-        stdoutcmd2 = ssh.ssh_run(cmd2)
+        stdoutcmd2 = ssh.run(cmd2)
         logging.debug("Output of Command Line 2:\n%s" % stdoutcmd2.stdout)
         
         cmd3="lsscsi | awk '{ print $1, $2 }' | grep tape"
         logging.debug("Command Line 3 - %s" % cmd3)
-        stdoutcmd3 = ssh.ssh_run(cmd3)
+        stdoutcmd3 = ssh.run(cmd3)
         logging.debug("Output of Command Line 3:\n%s" % stdoutcmd3.stdout)
         
         cmd4="ls /sys/kernel/config/target/qla2xxx | grep :"
         logging.debug("Command Line 4 - %s" % cmd4)    
-        stdoutcmd4 = ssh.ssh_run(cmd4)
+        stdoutcmd4 = ssh.run(cmd4)
         logging.debug("Output of Command Line 4:\n%s" % stdoutcmd4.stdout)
         
         cmd5="cat /etc/os-release | grep VERSION_ID"
         logging.debug("Command Line 5 - %s" % cmd5)
-        stdoutcmd5 = ssh.ssh_run(cmd5)
+        stdoutcmd5 = ssh.run(cmd5)
         logging.debug("Output of Command Line 5:\n%s" % stdoutcmd5.stdout)
         
         #if stdoutcmd1.stderr or stdoutcmd2.stderr or stdoutcmd3.stderr or stdoutcmd4.stderr or stdoutcmd5.stderr:
@@ -497,7 +497,7 @@ def eternus_cs8000_fc(**args):
         #    return -1
     except Exception as msgerror:
         logging.error("Failed the cmd execution in %s with error %s" % (args['ip'], msgerror))
-        ssh.ssh_del()
+        ssh.rm()
         return -1
     ########## END EXECUTE MAIN SSH COMMANDS ###########################        
         
@@ -526,26 +526,26 @@ def eternus_cs8000_fc(**args):
             if os_ver >= 15:
                 logging.debug(f"OS Version is >= 15 it's {os_ver}")
                 try:
-                    tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_output_megabytes")
-                    rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
+                    tx_mbytes = ssh.run(f"cat /sys/class/fc_host/{line}/statistics/fcp_output_megabytes")
+                    rx_mbytes = ssh.run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(tx_mbytes.stdout, 16)
                     rx_mbytes = int(rx_mbytes.stdout, 16)
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
-                    ssh.ssh_del()
+                    ssh.rm()
                     return -1
             else:
                 logging.debug(f"OS Version is < 15 it's {os_ver}")
                 try:
-                    tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
-                    rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
+                    tx_mbytes = ssh.run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
+                    rx_mbytes = ssh.run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(int(tx_mbytes.stdout, 16)*4 / (1024*1024))
                     rx_mbytes = int(int(rx_mbytes.stdout, 16)*4 / (1024*1024))
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
-                    ssh.ssh_del()
+                    ssh.rm()
                     return -1
             
             timestamp = int(time.time())    
@@ -565,26 +565,26 @@ def eternus_cs8000_fc(**args):
             if os_ver >= 15:
                 logging.debug(f"OS Version is >= 15 it's {os_ver}")
                 try:
-                    tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_output_megabytes")
-                    rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
+                    tx_mbytes = ssh.run(f"cat /sys/class/fc_host/{line}/statistics/fcp_output_megabytes")
+                    rx_mbytes = ssh.run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(tx_mbytes.stdout, 16)
                     rx_mbytes = int(rx_mbytes.stdout, 16)
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
-                    ssh.ssh_del()
+                    ssh.rm()
                     return -1
             else:
                 try:
                     logging.debug(f"OS Version is < 15 it's {os_ver}")
-                    tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
-                    rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
+                    tx_mbytes = ssh.run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
+                    rx_mbytes = ssh.run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(int(tx_mbytes.stdout, 16)*4 / (1024*1024))
                     rx_mbytes = int(int(rx_mbytes.stdout, 16)*4 / (1024*1024))
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
-                    ssh.ssh_del()
+                    ssh.rm()
                     return -1
             timestamp = int(time.time())                    
             record = record + [
@@ -605,12 +605,12 @@ def eternus_cs8000_fc(**args):
                 #hostctltgt = next((hostctl for hostctl in stdoutcmd1.stdout.split() if hostctl == line), None)
                 logging.debug(f"Target Controller with WWN {line} is HBA {hostctltgt}")
                 try:
-                    tx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
-                    rx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
+                    tx_mbytes = ssh.run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
+                    rx_mbytes = ssh.run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
-                    ssh.ssh_del()
+                    ssh.rm()
                     return -1
             else:
                 logging.error("Can't find the wwn from the target in the list of host controllers:\n%s" % line)
@@ -627,7 +627,7 @@ def eternus_cs8000_fc(**args):
 ########## END PROCESS THE COMMANDS OUTPUT ############################
 
     # Close ssh session
-    ssh.ssh_del()
+    ssh.rm()
     logging.debug("Finished core function ssh with args:\n%s" % args)
 
     # Send Data to InfluxDB
@@ -648,7 +648,7 @@ def eternus_cs8000_vtldirtycache(**args):
 
     # Open ssh session
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -661,12 +661,12 @@ def eternus_cs8000_vtldirtycache(**args):
     try:
         cmd1="vlmcmd cstat"
         logging.debug(f"Command Line 1 - {cmd1}")
-        stdout = ssh.ssh_run(cmd1)
+        stdout = ssh.run(cmd1)
         response = stdout.stdout
         logging.debug(f"Output of Command Line 1:\n {response}")
     except Exception as msgerror:
         logging.error(f"Failed the cmd execution in {args['ip']} with error {msgerror}")
-        ssh.ssh_del()
+        ssh.rm()
         return -1
 
     timestamp = int(time.time())

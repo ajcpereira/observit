@@ -22,3 +22,11 @@ GRAPH_LINUX_OS_MEM_DESCRIPTION = (
     "This graph displays total and used memory, allowing you to track system memory consumption. "
     "It helps visualize memory trends, identify potential bottlenecks, and understand resource allocation."
 )
+
+GRAPH_LINUX_OS_FS_DESCRIPTION = (
+    "Filesystem Capacity Usage Over Time: "
+    "This graph provides an overview of filesystem capacity usage, illustrating the total storage, "
+    "current used space, and a forecasted usage trend. It helps visualize disk utilization patterns "
+    "and anticipate future storage needs."
+)
+

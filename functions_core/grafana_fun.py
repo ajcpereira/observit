@@ -10,6 +10,7 @@ from platform import system
 from functions_core.yaml_validate import *
 from functions_core.grafanafun_dm import *
 from functions_core.grafanalib_ext import *
+from functions_core.gfun_descriptions import *
 from grafanalib._gen import DashboardEncoder
 
 
@@ -319,6 +320,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
         legendSortDesc=False,
         tooltipMode="multi",
         valueMax=100,
+        description=GRAPH_LINUX_OS_CPU_DESCRIPTION,
         )
     )
 
@@ -341,6 +343,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
         legendCalcs=['mean', 'max'],
         tooltipMode="multi",
         legendSortDesc=False,
+        description=GRAPH_LINUX_OS_LOAD_DESCRIPTION,
         )
     )
 
@@ -392,6 +395,7 @@ def graph_linux_os_mem(system_name, resource_name, metric, y_pos):
             valueDecimals=0,
             tooltipMode="multi",
             overrides=json_overrides,
+            description=GRAPH_LINUX_OS_MEM_DESCRIPTION,
         )
         )
 
@@ -1139,6 +1143,7 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
             legendCalcs=['mean', 'min', 'max'],
             tooltipMode="multi",
             overrides=json_overrides,
+            description=GRAPH_LINUX_OS_FS_DESCRIPTION,
         ))
 
 
@@ -2303,7 +2308,7 @@ def create_main_observit_dashboard(data):
         #print(f"My data is {resource_type} / {systems} ")
 
         graph_function_name = f"graph_{resource_type}_overview"
-        logging.debug(f" I Will calll{graph_function_name} ")   
+        logging.debug(f"I Will call {graph_function_name} ")   
         
         panels.append(RowPanel(title=f"Storage Capacity {resource_type}  ", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
 
@@ -3582,4 +3587,292 @@ def graph_powerstore_overview(system, host, y_pos):
 
     pos = pos + 14
     
+    return pos, panels_list
+
+
+def graph_linux_os_overview(system, host, y_pos):
+
+
+    panels_list =[]
+    pos = y_pos + 1
+
+    target_fs = [
+        InfluxDBTarget(
+            query=f"SELECT SUM(\"Total\") FROM (SELECT LAST(\"total\") AS \"Total\" FROM \"fs\" "
+                    f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                    f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+            alias="Total"
+        ),
+        InfluxDBTarget(
+            query=f"SELECT SUM(\"Used\") FROM (SELECT LAST(\"used\") AS \"Used\" FROM \"fs\" "
+                    f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                    f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+            alias="Used"
+        ),
+        InfluxDBTarget(
+            query=f"SELECT HOLT_WINTERS(SUM(\"Used\"), 30, 0) FROM (SELECT LAST(\"used\") as \"Used\" FROM \"fs\" "
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') "
+                    f"GROUP BY time($__interval), \"mount\"::tag, \"host\"::tag, \"system\"::tag fill(null)) "
+                    f"WHERE $timeFilter "
+                    f"GROUP BY time($__interval)",
+            alias="Forecast"
+        )
+    ]
+
+    json_overrides = [
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total"
+            },
+            "properties": [
+                {
+                    "id": "custom.fillBelowTo",
+                    "value": "Used"
+                },
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "super-light-blue",
+                        "mode": "fixed"
+                    }
+                },
+                {
+                    "id": "custom.lineWidth",
+                    "value": 2
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Growth"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                    }
+                },
+                {
+                    "id": "custom.lineWidth",
+                    "value": 4
+                },
+                {
+                    "id": "custom.axisPlacement",
+                    "value": "right"
+                },
+                {
+                    "id": "custom.fillOpacity",
+                    "value": 0
+                },
+                {
+                    "id": "custom.lineInterpolation",
+                    "value": "stepAfter"
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Forecast"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "super-light-purple",
+                        "mode": "fixed"
+                    }
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Used"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "mode": "fixed",
+                        "fixedColor": "blue"
+                    }
+                }
+            ]
+        }
+    ]
+
+
+    panels_list.append(CollectorTimeSeries(
+        title=f"{host} Filesystem Usage (Last value interval $__interval)",
+        dataSource='default',
+        targets=target_fs,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit=COLLECTOR_FS_UNITS,
+        gridPos=GridPos(h=10, w=24, x=0, y=pos),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendCalcs=['mean', 'min', 'max'],
+        tooltipMode="multi",
+        overrides=json_overrides,
+        description=GRAPH_LINUX_OS_FS_DESCRIPTION,
+    ))
+
+
+    pos = pos + 14
+    
+    return pos, panels_list
+
+
+def graph_eternus_cs8000_overview(system, host, y_pos):
+
+
+    panels_list =[]
+    pos = y_pos + 1
+
+    #THIS MUST BE CHANGED LAZY CODING, JUST A WORK AROUND FOR SPEED SAKE
+    if host=="VLP":
+        target_fs = [
+            InfluxDBTarget(
+                query=f"SELECT SUM(\"Total\") FROM (SELECT LAST(\"total\") AS \"Total\" FROM \"fs\" "
+                        f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+                alias="Total"
+            ),
+            InfluxDBTarget(
+                query=f"SELECT SUM(\"Used\") FROM (SELECT LAST(\"used\") AS \"Used\" FROM \"fs\" "
+                        f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+                alias="Used"
+            ),
+            InfluxDBTarget(
+                query=f"SELECT HOLT_WINTERS(SUM(\"Used\"), 30, 0) FROM (SELECT LAST(\"used\") as \"Used\" FROM \"fs\" "
+                        f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\"::tag, \"host\"::tag, \"system\"::tag fill(null)) "
+                        f"WHERE $timeFilter "
+                        f"GROUP BY time($__interval)",
+                alias="Forecast"
+            )
+        ]
+
+        json_overrides = [
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Total"
+                },
+                "properties": [
+                    {
+                        "id": "custom.fillBelowTo",
+                        "value": "Used"
+                    },
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "super-light-blue",
+                            "mode": "fixed"
+                        }
+                    },
+                    {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Growth"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "orange",
+                            "mode": "fixed"
+                        }
+                    },
+                    {
+                        "id": "custom.lineWidth",
+                        "value": 4
+                    },
+                    {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                    },
+                    {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                    },
+                    {
+                        "id": "custom.lineInterpolation",
+                        "value": "stepAfter"
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Forecast"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "super-light-purple",
+                            "mode": "fixed"
+                        }
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Used"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "mode": "fixed",
+                            "fixedColor": "blue"
+                        }
+                    }
+                ]
+            }
+        ]
+
+
+        panels_list.append(CollectorTimeSeries(
+            title=f"{system} - {host} Filesystem Usage",
+            dataSource='default',
+            targets=target_fs,
+            drawStyle='line',
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
+            unit=COLLECTOR_FS_UNITS,
+            gridPos=GridPos(h=10, w=24, x=0, y=pos),
+            spanNulls=COLLECTOR_SPAN_NULLS,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendCalcs=['mean', 'min', 'max'],
+            tooltipMode="multi",
+            overrides=json_overrides,
+            description=GRAPH_LINUX_OS_FS_DESCRIPTION,
+        ))
+
+
+        pos = pos + 14
+        
     return pos, panels_list

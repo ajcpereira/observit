@@ -35,8 +35,8 @@ def setup_telegraf(**args):
     logging.debug("Finished setup_telegraf")
 
 def telegraf_local_cpu(**args):
-    setup_telegraf(**args)
     logging.debug("Starting telegraf_local_cpu")
+    setup_telegraf(**args)
 
     # Define the path to the telegraf.conf file
     config_file_path = '/collector/telegraf/telegraf.conf'

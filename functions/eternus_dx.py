@@ -1,21 +1,24 @@
-from easysnmp import Session
+#from easysnmp import Session
 from functions_core.send_influxdb import *
+from functions_core.SnmpConnect import *  
 
 def eternus_dx_cpu(**args):
     # Create an SNMP session to a device
-    session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    #session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    logging.debug(f"Print all args in eternus_dx: {args}")
+    session=SnmpConnect(str(args['ip']),args['bastion'],args['snmp_community'],args['snmp_version'], args['snmp_user'], args['snmp_password'], args['snmp_auth_protocol'], args['user'], args['host_keys'])
 
     # We will get the OID version, until now all the rest of the info is the same
-    SNMP_MIB_VER = session.get('1.3.6.1.2.1.1.2.0').value[1:]
+    SNMP_MIB_VER = session.get('1.3.6.1.2.1.1.2.0')
 
-    timestamp = int(session.get(SNMP_MIB_VER + '.5.1.4.0').value)
+    timestamp = int(session.get(SNMP_MIB_VER[1:] + '.5.1.4.0'))
 
     #Core
     # Number of CM's iso.3.6.1.4.1.211.1.21.1.150.5.14.1.0
     # Cores per CM iso.3.6.1.4.1.211.1.21.1.150.5.14.2.1.2
 
     logging.debug(f"Will get number of CM's ")
-    nr_cm = int(session.get(SNMP_MIB_VER + '.5.14.1.0').value)
+    nr_cm = int(session.get(SNMP_MIB_VER + '.5.14.1.0'))
     logging.debug(f"Number of CM's is {nr_cm}")
 
     
@@ -30,7 +33,7 @@ def eternus_dx_cpu(**args):
 
         logging.debug(f"OID to query cores is {str(oid_query_cores)}")
    
-        nr_cores = int(session.get(oid_query_cores).value)
+        nr_cores = int(session.get(oid_query_cores))
 
         logging.debug(f"CM#{count_cm} have cores#{nr_cores}")
 
@@ -40,7 +43,7 @@ def eternus_dx_cpu(**args):
 
             logging.debug(f"OID to query usage is {oid_query_usage}")
             
-            logging.debug(f"CM#{count_cm} Core#{count_cores} usage is {int(session.get(oid_query_usage).value)}")
+            logging.debug(f"CM#{count_cm} Core#{count_cores} usage is {int(session.get(oid_query_usage))}")
             i += 1
 
             record = record + [
@@ -48,7 +51,7 @@ def eternus_dx_cpu(**args):
                 "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
                          "CM": str(count_cm), "Core": str(i-4)
                          },
-                "fields": {"busyrate": int(session.get(oid_query_usage).value)},
+                "fields": {"busyrate": int(session.get(oid_query_usage))},
                 "time": timestamp
                 }
             ]
@@ -60,16 +63,22 @@ def eternus_dx_cpu(**args):
     else:
          logging.warning(f"There is no data to be sent to influxdb, are you in the correct system with the correct metrics?")
 
+    session.rm
     logging.debug("Finished func_eternus_dx_cpu")
 
 def eternus_dx_tppool(**args):
     # Create an SNMP session to a device
-    session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    #session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    session=SnmpConnect(str(args['ip']),args['bastion'],args['snmp_community'],args['snmp_version'], args['snmp_user'], args['snmp_password'], args['snmp_auth_protocol'], args['user'], args['host_keys'])
+
+    if not session.status:
+        logging.error(f"The init from class SnmpConnect failed")
+        exit -1
 
     # We will get the OID version, until now all the rest of the info is the same
-    snmp_mib_ver = session.get('1.3.6.1.2.1.1.2.0').value[1:]
+    snmp_mib_ver = session.get('1.3.6.1.2.1.1.2.0')
 
-    timestamp = int(session.get(snmp_mib_ver + '.5.1.4.0').value)
+    timestamp = int(session.get(snmp_mib_ver[1:] + '.5.1.4.0'))
  
 
     nr_tppool=[]
@@ -83,11 +92,11 @@ def eternus_dx_tppool(**args):
     for poolnr in nr_tppool:
         total_vol_requested = 0
         for vol in session.walk(snmp_mib_ver + '.14.2.2.1.1'):
-            if int(session.get(snmp_mib_ver + '.14.2.2.1.10.' + vol.value).value) == int(poolnr):
-                total_vol_requested = total_vol_requested + int(session.get(snmp_mib_ver + '.14.2.2.1.4.' + vol.value).value)
+            if int(session.get(snmp_mib_ver + '.14.2.2.1.10.' + vol.value)) == int(poolnr):
+                total_vol_requested = total_vol_requested + int(session.get(snmp_mib_ver + '.14.2.2.1.4.' + vol.value))
 
-        tppool_total_mb = int(session.get(str(snmp_mib_ver + ".14.5.2.1.3." + str(poolnr))).value)
-        tppool_used_mb = int(session.get(str(snmp_mib_ver + ".14.5.2.1.4." + str(poolnr))).value)    
+        tppool_total_mb = int(session.get(str(snmp_mib_ver + ".14.5.2.1.3." + str(poolnr))))
+        tppool_used_mb = int(session.get(str(snmp_mib_ver + ".14.5.2.1.4." + str(poolnr))))    
         record = record + [
             {"measurement": "eternus_dx_tppool",
             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
@@ -108,20 +117,26 @@ def eternus_dx_tppool(**args):
     else:
          logging.warning(f"There is no data to be sent to influxdb, are you in the correct system with the correct metrics?")
 
+    session.rm
     logging.debug("Finished func_eternus_dx_tppool")
 
 def eternus_dx_power(**args):
     # Create an SNMP session to a device
-    session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    #session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    session=SnmpConnect(str(args['ip']),args['bastion'],args['snmp_community'],args['snmp_version'], args['snmp_user'], args['snmp_password'], args['snmp_auth_protocol'], args['user'], args['host_keys'])
+    
+    if not session.status:
+        logging.error(f"The init from class SnmpConnect failed")
+        exit -1
 
     # We will get the OID version, until now all the rest of the info is the same
-    SNMP_MIB_VER = session.get('1.3.6.1.2.1.1.2.0').value[1:]
+    SNMP_MIB_VER = session.get('1.3.6.1.2.1.1.2.0')
 
-    timestamp = int(session.get(SNMP_MIB_VER + '.13.1.2.1.4.0').value)
+    timestamp = int(session.get(SNMP_MIB_VER[1:] + '.13.1.2.1.4.0'))
  
     #Perform an SNMP WALK on a subtree
-    if int(session.get(SNMP_MIB_VER + '.13.1.2.1.2.0').value) == 2:
-        watt_power = int(session.get(SNMP_MIB_VER + '.13.1.2.1.5.0').value)
+    if int(session.get(SNMP_MIB_VER + '.13.1.2.1.2.0')) == 2:
+        watt_power = int(session.get(SNMP_MIB_VER + '.13.1.2.1.5.0'))
         record = [
             {"measurement": "eternus_dx_power",
             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
@@ -140,20 +155,26 @@ def eternus_dx_power(**args):
     else:
          logging.warning(f"There is no data to be sent to influxdb, are you in the correct system with the correct metrics?")
 
+    session.rm
     logging.debug("Finished func_eternus_dx_power")
 
 def eternus_dx_temp(**args):
     # Create an SNMP session to a device
-    session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    #session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    session=SnmpConnect(str(args['ip']),args['bastion'],args['snmp_community'],args['snmp_version'], args['snmp_user'], args['snmp_password'], args['snmp_auth_protocol'], args['user'], args['host_keys'])
+
+    if not session.status:
+        logging.error(f"The init from class SnmpConnect failed")
+        exit -1
 
     # We will get the OID version, until now all the rest of the info is the same
-    SNMP_MIB_VER = session.get('1.3.6.1.2.1.1.2.0').value[1:]
+    SNMP_MIB_VER = session.get('1.3.6.1.2.1.1.2.0')
 
-    timestamp = int(session.get(SNMP_MIB_VER + '.13.3.2.1.4.0').value)
+    timestamp = int(session.get(SNMP_MIB_VER[1:] + '.13.3.2.1.4.0'))
  
     #Perform an SNMP WALK on a subtree
-    if int(session.get(SNMP_MIB_VER + '.13.3.2.1.2.0').value) == 2:
-        intake_temp = int(session.get(SNMP_MIB_VER + '.13.3.2.1.5.0').value)
+    if int(session.get(SNMP_MIB_VER + '.13.3.2.1.2.0')) == 2:
+        intake_temp = int(session.get(SNMP_MIB_VER + '.13.3.2.1.5.0'))
         record = [
             {
             "measurement": "eternus_dx_temp",
@@ -172,17 +193,23 @@ def eternus_dx_temp(**args):
     else:
          logging.warning(f"There is no data to be sent to influxdb, are you in the correct system with the correct metrics?")
 
+    session.rm
     logging.debug("Finished func_eternus_dx_temp")
 
 
 def eternus_dx_vol(**args):
     # Create an SNMP session to a device
-    session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
-
+    #session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
+    session=SnmpConnect(str(args['ip']),args['bastion'],args['snmp_community'],args['snmp_version'], args['snmp_user'], args['snmp_password'], args['snmp_auth_protocol'], args['user'], args['host_keys'])
     # We will get the OID version, until now all the rest of the info is the same
-    snmp_mib_ver = session.get('1.3.6.1.2.1.1.2.0').value[1:]
 
-    timestamp = int(session.get(snmp_mib_ver + '.5.1.4.0').value)
+    if not session.status:
+        logging.error(f"The init from class SnmpConnect failed")
+        exit -1
+        
+    snmp_mib_ver = session.get('1.3.6.1.2.1.1.2.0')
+
+    timestamp = int(session.get(snmp_mib_ver[1:] + '.5.1.4.0'))
 
     record=[]
 
@@ -192,13 +219,13 @@ def eternus_dx_vol(**args):
             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
                      "vol_id": str(vol.value)
                      },
-            "fields": {"vol_size": int(session.get(snmp_mib_ver + '.14.2.2.1.4.' + vol.value).value),
-                       "read_iops": int(session.get(snmp_mib_ver + '.5.2.2.1.2.' + vol.value).value),
-                       "write_iops": int(session.get(snmp_mib_ver + '.5.2.2.1.3.' + vol.value).value),
-                       "read_throughput": int(session.get(snmp_mib_ver + '.5.2.2.1.6.' + vol.value).value), #MB/s
-                       "write_throughput": int(session.get(snmp_mib_ver + '.5.2.2.1.7.' + vol.value).value),#MB/s
-                       "read_avg_time": int(session.get(snmp_mib_ver + '.5.2.2.1.10.' + vol.value).value),  #ms
-                       "write_avg_time": int(session.get(snmp_mib_ver + '.5.2.2.1.11.' + vol.value).value)  #ms
+            "fields": {"vol_size": int(session.get(snmp_mib_ver + '.14.2.2.1.4.' + vol.value)),
+                       "read_iops": int(session.get(snmp_mib_ver + '.5.2.2.1.2.' + vol.value)),
+                       "write_iops": int(session.get(snmp_mib_ver + '.5.2.2.1.3.' + vol.value)),
+                       "read_throughput": int(session.get(snmp_mib_ver + '.5.2.2.1.6.' + vol.value)), #MB/s
+                       "write_throughput": int(session.get(snmp_mib_ver + '.5.2.2.1.7.' + vol.value)),#MB/s
+                       "read_avg_time": int(session.get(snmp_mib_ver + '.5.2.2.1.10.' + vol.value)),  #ms
+                       "write_avg_time": int(session.get(snmp_mib_ver + '.5.2.2.1.11.' + vol.value))  #ms
             },
             "time": timestamp
             }
@@ -211,6 +238,7 @@ def eternus_dx_vol(**args):
     else:
          logging.warning(f"There is no data to be sent to influxdb, are you in the correct system with the correct metrics?")
 
+    session.rm
     logging.debug("Finished func_eternus_dx_vol")
 
 

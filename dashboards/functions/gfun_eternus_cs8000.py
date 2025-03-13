@@ -1,66 +1,84 @@
-import json, requests, logging
-from platform import system
 
-from functions_core.yaml_validate import *
-from functions_core.gfun_dm import *
-from functions_core.grafanalib_ext import *
-from functions_core.gfun_descriptions import *
+########################################################################################################################
+# PROJECT: observIT dashboards container
+# DESCRIPTION: eternus_cs8000 graphics creation
+# AUTHOR: machadon
+# DATE: 2025-03-13
+########################################################################################################################
+
+########################################################################################################################
+# IMPORTS
+########################################################################################################################
+
 from gfun_linux_os import *
-from grafanalib._gen import DashboardEncoder
+
+########################################################################################################################
+#
+# CONSTANT DEFINITION
+#
+########################################################################################################################
+
+GRAPH_ETERNUS_CS8000_FC_DESCRIPTION = (
+    "FC Traffic Over Time (Rx/Tx): "
+    "This graph displays inbound (Rx) and outbound (Tx) FC traffic across different interfaces, "
+    "showing data transfer rates over a given period. "
+    "Outbound traffic (Tx) appears above the x-axis, while inbound traffic (Rx) appears below the x-axis. "
+    "It helps visualize network activity, track usage patterns, and identify potential anomalies or spikes in traffic."
+)
 
 
 ########################################################################################################################
 #
-# Resource Type: eternus_cs8000
+# FUNCTIONS: Main Function
 #
 ########################################################################################################################
 
-def graph_eternus_cs8000(system_name, resource_name, data, global_pos):
+def gfun_eternus_cs8000_main(system_name, resource_name, data, global_pos):
     panels_list = []
     y_pos = global_pos
 
     for metric in data:
         match metric['metric']:
             case "fs_io":
-                y_pos, panel = graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "drives":
-                y_pos, panel = graph_eternus_cs8000_drives(system_name, resource_name, y_pos)
+                y_pos, panel = gfun_eternus_cs8000_drives(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "medias":
-                y_pos, panel = graph_eternus_cs8000_medias(system_name, resource_name, y_pos)
+                y_pos, panel = gfun_eternus_cs8000_medias(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "pvgprofile":
-                y_pos, panel = graph_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos)
+                y_pos, panel = gfun_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "fc":
-                y_pos, panel = graph_eternus_cs8000_fc(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_eternus_cs8000_fc(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "cpu":
-                y_pos, panel = graph_linux_os_cpu(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_linux_os_cpu(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "mem":
-                y_pos, panel = graph_linux_os_mem(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_linux_os_mem(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "fs":
-                y_pos, panel = graph_linux_os_fs(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_linux_os_fs(system_name, resource_name, metric, y_pos)
                 #y_pos, panel = graph_eternus_cs8000_fs(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = graph_linux_os_net(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_linux_os_net(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
 
-def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
+def gfun_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
     str_title = "File System IO (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos)), ]
     pos = y_pos + 1
@@ -203,7 +221,7 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def graph_eternus_cs8000_drives(system_name, resource_name, y_pos):
+def gfun_eternus_cs8000_drives(system_name, resource_name, y_pos):
     str_title = "Tape Libraries (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -311,7 +329,7 @@ def graph_eternus_cs8000_drives(system_name, resource_name, y_pos):
     return line, panels_list
 
 
-def graph_eternus_cs8000_medias(system_name, resource_name, y_pos):
+def gfun_eternus_cs8000_medias(system_name, resource_name, y_pos):
     str_title = "Tape Medias (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -419,7 +437,7 @@ def graph_eternus_cs8000_medias(system_name, resource_name, y_pos):
     return line, panels_list
 
 
-def graph_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos):
+def gfun_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos):
     str_title = "Physical Volume Group Profile (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -527,7 +545,7 @@ def graph_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos):
     return line, panels_list
 
 
-def graph_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
+def gfun_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
     str_title = f"FibreChannel Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1

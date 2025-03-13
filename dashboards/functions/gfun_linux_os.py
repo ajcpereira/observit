@@ -1,22 +1,69 @@
+########################################################################################################################
+# PROJECT: observIT dashboards container
+# DESCRIPTION: linux_os graphics creation
+# AUTHOR: machadon
+# DATE: 2025-03-13
+########################################################################################################################
 
+########################################################################################################################
+# IMPORTS
+########################################################################################################################
 
-import json, requests, logging
-from platform import system
-
-from functions_core.yaml_validate import *
-from functions_core.grafanafun_dm import *
 from functions_core.grafanalib_ext import *
-from functions_core.gfun_descriptions import *
-from grafanalib._gen import DashboardEncoder
+
 
 ########################################################################################################################
 #
-# Resource Type: linux_os
+# CONSTANT DEFINITION
+#
+########################################################################################################################
+
+GRAPH_LINUX_OS_CPU_DESCRIPTION = (
+    "CPU Performance Over Time (%): "
+    "This graph illustrates the CPU usage percentage over a given period, "
+    "highlighting performance fluctuations and peak activity. "
+    "It helps visualize resource utilization, identify trends, and detect "
+    "potential bottlenecks or anomalies."
+)
+
+GRAPH_LINUX_OS_LOAD_DESCRIPTION = (
+    "Linux 5-Minute Average Load Over Time: "
+    "This graph shows the system load average calculated over 5-minute intervals, "
+    "reflecting the number of processes waiting to run. "
+    "It helps assess system performance, identify periods of high demand, "
+    "and detect potential resource constraints."
+)
+
+GRAPH_LINUX_OS_MEM_DESCRIPTION = (
+    "Memory Usage Over Time: "
+    "This graph displays total and used memory, allowing you to track system memory consumption. "
+    "It helps visualize memory trends, identify potential bottlenecks, and understand resource allocation."
+)
+
+GRAPH_LINUX_OS_FS_DESCRIPTION = (
+    "Filesystem Capacity Usage Over Time: "
+    "This graph provides an overview of filesystem capacity usage, illustrating the total storage, "
+    "current used space, and a forecasted usage trend. It helps visualize disk utilization patterns "
+    "and anticipate future storage needs."
+)
+
+GRAPH_LINUX_OS_NETWORK_DESCRIPTION = (
+    "Network Traffic Over Time (Rx/Tx): "
+    "This graph displays inbound (Rx) and outbound (Tx) network traffic across different interfaces, "
+    "showing data transfer rates over a given period. "
+    "Outbound traffic (Tx) appears above the x-axis, while inbound traffic (Rx) appears below the x-axis. "
+    "It helps visualize network activity, track usage patterns, and identify potential anomalies or spikes in traffic."
+)
+
+
+########################################################################################################################
+#
+# FUNCTIONS: Main Function
 #
 ########################################################################################################################
 
 
-def graph_linux_os(system_name, resource_name, data, global_pos):
+def gfun_linux_os_main(system_name, resource_name, data, global_pos):
     # todo:
 
     panels_list = []
@@ -25,19 +72,19 @@ def graph_linux_os(system_name, resource_name, data, global_pos):
     for metric in data:
         match metric['metric']:
             case "cpu":
-                y_pos, panel = graph_linux_os_cpu(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_linux_os_cpu(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "mem":
-                y_pos, panel = graph_linux_os_mem(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_linux_os_mem(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "fs":
-                y_pos, panel = graph_linux_os_fs(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_linux_os_fs(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = graph_linux_os_net(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_linux_os_net(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
@@ -45,11 +92,11 @@ def graph_linux_os(system_name, resource_name, data, global_pos):
 
 ########################################################################################################################
 #
-# Resource Type: graph_linux_os_cpu
-#   Plot
+# FUNCTIONS: Plot a graphic for each metric
 #
 ########################################################################################################################
-def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
+
+def gfun_linux_os_cpu(system_name, resource_name, metric, y_pos):
     str_title = f"CPU Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -127,7 +174,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def graph_linux_os_mem(system_name, resource_name, metric, y_pos):
+def gfun_linux_os_mem(system_name, resource_name, metric, y_pos):
     str_title = f"Memory Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
@@ -184,7 +231,7 @@ def graph_linux_os_mem(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def graph_linux_os_net(system_name, resource_name, metric, y_pos):
+def gfun_linux_os_net(system_name, resource_name, metric, y_pos):
     str_title = f"Network Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
@@ -249,7 +296,7 @@ def graph_linux_os_net(system_name, resource_name, metric, y_pos):
 
 
 
-def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
+def gfun_linux_os_fs(system_name, resource_name, metric, y_pos):
 
     str_title = f"File System Capacity ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]

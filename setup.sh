@@ -135,8 +135,12 @@ build_collector() {
     export INTERFACE
 
 	docker compose stop observit
+    docker compose stop dashboards
+    
 
 	docker compose images rm observit-observit-1
+    docker compose images rm observit-dashboards-1
+
 
 	cp ./install/Dockerfile .
     if [ ! -d /opt/observit/telegraf/config ]; then

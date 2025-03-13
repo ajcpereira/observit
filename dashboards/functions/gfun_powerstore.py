@@ -1,6 +1,6 @@
 ########################################################################################################################
 # PROJECT: observIT dashboards container
-# DESCRIPTION: eternus_dx graphics creation
+# DESCRIPTION: powerstore graphics creation
 # AUTHOR: machadon
 # DATE: 2025-03-13
 ########################################################################################################################

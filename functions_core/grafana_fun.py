@@ -10,6 +10,7 @@ from platform import system
 from functions_core.yaml_validate import *
 from functions_core.grafanafun_dm import *
 from functions_core.grafanalib_ext import *
+from functions_core.gfun_descriptions import *
 from grafanalib._gen import DashboardEncoder
 
 
@@ -64,26 +65,34 @@ def create_system_dashboard(sys, config):
                 panels = panels + res_panel
             case "eternus_cs8000":
                 y_pos, res_panel = graph_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], y_pos)
-                templating = create_dashboard_vars(res['data'])
+                templating = graph_eternus_cs8000_dashboard_vars(res['data'])
                 panels = panels + res_panel
             case "powerstore":
                 y_pos, res_panel = graph_powerstore(str(sys['system']), str(res['name']), res['data'], y_pos)
                 panels = panels + res_panel
             case "eternus_dx":
                 y_pos, res_panel = graph_eternus_dx(str(sys['system']), str(res['name']), res['data'], y_pos)
-                templating = graph_eternus_dx_dashboard_vars(res['data'])
+                templating = graph_eternus_dx_dashboard_vars(str(sys['system']), res['data'])
                 panels = panels + res_panel
+
+    links_panel = [DashboardLink(
+        asDropdown=True,
+        type="dashboards",
+        title="Menu",
+        keepTime=False,
+    )]
 
     my_dashboard = Dashboard(
         title="System " + sys['system'] + " dashboard",
-        description="fjcollector auto generated dashboard",
+        description="observit auto generated dashboard",
         tags=[
-            sys['system'],
+            sys['system'],"observit",
         ],
         timezone="browser",
         refresh="1m",
         panels=panels,
         templating=Templating(templating),
+        links=links_panel,
     ).auto_panel_ids()
 
     return my_dashboard
@@ -235,7 +244,7 @@ def create_title_panel(system_name, panel_title=""):
     return panel
 
 
-def create_dashboard_vars(data):
+def graph_eternus_cs8000_dashboard_vars(data):
     tpl_lst = []
 
     for metric in data:
@@ -311,6 +320,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
         legendSortDesc=False,
         tooltipMode="multi",
         valueMax=100,
+        description=GRAPH_LINUX_OS_CPU_DESCRIPTION,
         )
     )
 
@@ -333,6 +343,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
         legendCalcs=['mean', 'max'],
         tooltipMode="multi",
         legendSortDesc=False,
+        description=GRAPH_LINUX_OS_LOAD_DESCRIPTION,
         )
     )
 
@@ -384,6 +395,7 @@ def graph_linux_os_mem(system_name, resource_name, metric, y_pos):
             valueDecimals=0,
             tooltipMode="multi",
             overrides=json_overrides,
+            description=GRAPH_LINUX_OS_MEM_DESCRIPTION,
         )
         )
 
@@ -453,6 +465,7 @@ def graph_linux_os_net(system_name, resource_name, metric, y_pos):
             legendSortDesc=False,
             tooltipMode="multi",
             overrides=override_lst,
+            description=GRAPH_LINUX_OS_NETWORK_DESCRIPTION, 
         ))
 
         pos = pos + 7
@@ -980,6 +993,7 @@ def graph_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
             legendCalcs=['mean', 'max'],
             legendSortDesc=False,
             overrides=override_lst,
+            description=GRAPH_ETERNUS_CS8000_FC_DESCRIPTION,
         ))
 
         pos = pos + 7
@@ -1131,6 +1145,7 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
             legendCalcs=['mean', 'min', 'max'],
             tooltipMode="multi",
             overrides=json_overrides,
+            description=GRAPH_LINUX_OS_FS_DESCRIPTION,
         ))
 
 
@@ -2179,21 +2194,22 @@ def graph_eternus_dx_temp(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def graph_eternus_dx_dashboard_vars(data):
+def graph_eternus_dx_dashboard_vars(system, data):
     tpl_lst = []
 
     for metric in data:
+        host = metric['hosts'][0]
         match metric['metric']:
             case "tppool":
                 tpl_lst = tpl_lst + [Template(
                     # dataSource="default",
                     name='tpp',
                     label='tpp',
-                    query='SHOW TAG VALUES WITH KEY = \"tppool_nr\"',
+                    query=f"SHOW TAG VALUES WITH KEY = \"tppool_nr\" WHERE \"system\"::tag = '{system}'",
                     type='query',
                     includeAll=True,
                     multi=True,
-                    allValue=True,
+                    allValue="",
                     default='All',
                     refresh=2,
                     hide=HIDE_VARIABLE,
@@ -2294,22 +2310,14 @@ def create_main_observit_dashboard(data):
         #print(f"My data is {resource_type} / {systems} ")
 
         graph_function_name = f"graph_{resource_type}_overview"
-        logging.debug(f" I Will calll{graph_function_name} ")   
+        logging.debug(f"I Will call {graph_function_name} ")   
         
+        panels.append(RowPanel(title=f"Storage Capacity {resource_type}  ", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
+
         for system, hosts in systems.items():
-            # logging.debug(f"Calling function {graph_function_name}_total({system})")
-            # try:
-            #     graph_function = globals().get(f"{graph_function_name}_total")
-            #     if graph_function:
-            #         y_pos, panel = graph_function(system, "Eternus Total", y_pos)
-            #         panels = panels + panel
-            #     else:
-            #         raise ValueError(f"Function '{graph_function_name}' not found.")
-            # except Exception as e:
-            #     logging.debug(f"Error processing {system}, {host} for {resource_type}: {e}")
+
+            logging.debug(f"Calling function {graph_function_name}({system})")
             for host in hosts:
-                panels.append(RowPanel(title="Storage Capacity per host", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
-                logging.debug(f"Calling function {graph_function_name}({system},{host})")
                 try:
                     graph_function = globals().get(graph_function_name)
                     if graph_function:
@@ -2320,15 +2328,23 @@ def create_main_observit_dashboard(data):
                 except Exception as e:
                     logging.debug(f"Error processing {system}, {host} for {resource_type}: {e}")
 
+    links_panel = [DashboardLink(
+        asDropdown=True,
+        type="dashboards",
+        title="Menu",
+        keepTime=False,
+    )]
+
     my_dashboard = Dashboard(
-        title="ObservIT Land Page",
-        description="observIT auto generated dashboard",
-        tags="observIT main",
+        title="Home observit",
+        description="observIT home dashboard",
+        tags=["observit"],
         timezone="browser",
         refresh="1m",
         time= Time("now-12M", "now+3M"),
         panels=panels,
         templating=Templating(templating),
+        links=links_panel,
     ).auto_panel_ids()
  
 
@@ -3575,3 +3591,290 @@ def graph_powerstore_overview(system, host, y_pos):
     
     return pos, panels_list
 
+
+def graph_linux_os_overview(system, host, y_pos):
+
+
+    panels_list =[]
+    pos = y_pos + 1
+
+    target_fs = [
+        InfluxDBTarget(
+            query=f"SELECT SUM(\"Total\") FROM (SELECT LAST(\"total\") AS \"Total\" FROM \"fs\" "
+                    f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                    f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+            alias="Total"
+        ),
+        InfluxDBTarget(
+            query=f"SELECT SUM(\"Used\") FROM (SELECT LAST(\"used\") AS \"Used\" FROM \"fs\" "
+                    f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                    f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+            alias="Used"
+        ),
+        InfluxDBTarget(
+            query=f"SELECT HOLT_WINTERS(SUM(\"Used\"), 30, 0) FROM (SELECT LAST(\"used\") as \"Used\" FROM \"fs\" "
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') "
+                    f"GROUP BY time($__interval), \"mount\"::tag, \"host\"::tag, \"system\"::tag fill(null)) "
+                    f"WHERE $timeFilter "
+                    f"GROUP BY time($__interval)",
+            alias="Forecast"
+        )
+    ]
+
+    json_overrides = [
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total"
+            },
+            "properties": [
+                {
+                    "id": "custom.fillBelowTo",
+                    "value": "Used"
+                },
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "super-light-blue",
+                        "mode": "fixed"
+                    }
+                },
+                {
+                    "id": "custom.lineWidth",
+                    "value": 2
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Growth"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                    }
+                },
+                {
+                    "id": "custom.lineWidth",
+                    "value": 4
+                },
+                {
+                    "id": "custom.axisPlacement",
+                    "value": "right"
+                },
+                {
+                    "id": "custom.fillOpacity",
+                    "value": 0
+                },
+                {
+                    "id": "custom.lineInterpolation",
+                    "value": "stepAfter"
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Forecast"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "super-light-purple",
+                        "mode": "fixed"
+                    }
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Used"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "mode": "fixed",
+                        "fixedColor": "blue"
+                    }
+                }
+            ]
+        }
+    ]
+
+
+    panels_list.append(CollectorTimeSeries(
+        title=f"{system} - {host} Filesystem Usage",
+        dataSource='default',
+        targets=target_fs,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit=COLLECTOR_FS_UNITS,
+        gridPos=GridPos(h=10, w=24, x=0, y=pos),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendCalcs=['mean', 'min', 'max'],
+        tooltipMode="multi",
+        overrides=json_overrides,
+        description=GRAPH_LINUX_OS_FS_DESCRIPTION,
+    ))
+
+
+    pos = pos + 14
+    
+    return pos, panels_list
+
+
+def graph_eternus_cs8000_overview(system, host, y_pos):
+
+
+    panels_list =[]
+    pos = y_pos + 1
+
+    #THIS MUST BE CHANGED LAZY CODING, JUST A WORK AROUND FOR SPEED SAKE
+    if host=="VLP":
+        target_fs = [
+            InfluxDBTarget(
+                query=f"SELECT SUM(\"Total\") FROM (SELECT LAST(\"total\") AS \"Total\" FROM \"fs\" "
+                        f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+                alias="Total"
+            ),
+            InfluxDBTarget(
+                query=f"SELECT SUM(\"Used\") FROM (SELECT LAST(\"used\") AS \"Used\" FROM \"fs\" "
+                        f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+                alias="Used"
+            ),
+            InfluxDBTarget(
+                query=f"SELECT HOLT_WINTERS(SUM(\"Used\"), 30, 0) FROM (SELECT LAST(\"used\") as \"Used\" FROM \"fs\" "
+                        f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\"::tag, \"host\"::tag, \"system\"::tag fill(null)) "
+                        f"WHERE $timeFilter "
+                        f"GROUP BY time($__interval)",
+                alias="Forecast"
+            )
+        ]
+
+        json_overrides = [
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Total"
+                },
+                "properties": [
+                    {
+                        "id": "custom.fillBelowTo",
+                        "value": "Used"
+                    },
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "super-light-blue",
+                            "mode": "fixed"
+                        }
+                    },
+                    {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Growth"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "orange",
+                            "mode": "fixed"
+                        }
+                    },
+                    {
+                        "id": "custom.lineWidth",
+                        "value": 4
+                    },
+                    {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                    },
+                    {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                    },
+                    {
+                        "id": "custom.lineInterpolation",
+                        "value": "stepAfter"
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Forecast"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "super-light-purple",
+                            "mode": "fixed"
+                        }
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Used"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "mode": "fixed",
+                            "fixedColor": "blue"
+                        }
+                    }
+                ]
+            }
+        ]
+
+
+        panels_list.append(CollectorTimeSeries(
+            title=f"{system} - {host} Filesystem Usage",
+            dataSource='default',
+            targets=target_fs,
+            drawStyle='line',
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
+            unit=COLLECTOR_FS_UNITS,
+            gridPos=GridPos(h=10, w=24, x=0, y=pos),
+            spanNulls=COLLECTOR_SPAN_NULLS,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendCalcs=['mean', 'min', 'max'],
+            tooltipMode="multi",
+            overrides=json_overrides,
+            description=GRAPH_LINUX_OS_FS_DESCRIPTION,
+        ))
+
+
+        pos = pos + 14
+        
+    return pos, panels_list

@@ -51,7 +51,7 @@ def new_create_system_dashboard(sys, dash_name=None):
                 panels = panels + res_panel
             case "eternus_cs8000":
                 y_pos, res_panel = graph_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], y_pos)
-                templating = create_dashboard_vars(res['data'])
+                templating = graph_eternus_cs8000_dashboard_vars(res['data'])
                 panels = panels + res_panel
             case "powerstore":
                 y_pos, res_panel = graph_powerstore(str(sys['system']), str(res['name']), res['data'], y_pos)

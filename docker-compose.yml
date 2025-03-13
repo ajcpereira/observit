@@ -78,3 +78,21 @@ services:
        options:
          max-size: "10m"
          max-file: 3
+
+  dashboards:
+    build:
+      context: .
+      dockerfile: dashboards/install/Dockerfile.dashboards 
+    image: "dashboards:latest"
+    restart: unless-stopped
+    volumes:
+      - /opt/observit/dashboards/logs:/dashboards/logs
+      - /opt/observit/collector/config:/dashboards/config:ro
+#    environment:
+#      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
+#      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
+#      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

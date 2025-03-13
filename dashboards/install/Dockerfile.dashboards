@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-ENV WORKDIR="/collector"
+ENV WORKDIR="/dashboards"
 WORKDIR $WORKDIR
 ENV VIRTUAL_ENV="$WORKDIR/.venv"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
@@ -19,18 +19,21 @@ RUN mkdir config
 RUN mkdir functions
 RUN mkdir functions_core
 RUN mkdir install
-RUN mkdir keys
-RUN mkdir telegraf
-RUN mkdir license
+#RUN mkdir keys
+#RUN mkdir license
 
-ADD config config
-ADD functions functions
-ADD functions_core functions_core
-ADD install install
-ADD keys keys
-ADD logs logs
-ADD config/telegraf.conf telegraf
-ADD main.py .
+ADD dashboards/functions functions
+ADD dashboards/functions_core functions_core
+ADD dashboards/install install
+ADD dashboards/main.py .
+#ADD keys keys
+#ADD logs logs
+#ADD config/telegraf.conf telegraf
+
+#ADD Common functions
+ADD functions_core/utils.py functions_core/
+ADD functions_core/yaml_validate.py functions_core/
+
 
 #RUN python3 -m pip install --upgrade pip
 RUN python3 -m venv $VIRTUAL_ENV

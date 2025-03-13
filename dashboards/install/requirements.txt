@@ -1,0 +1,11 @@
+pyyaml
+pydantic
+pandas
+fabric2
+requests
+python-dateutil
+grafanalib
+influxdb_client
+easysnmp
+toml
+cryptography

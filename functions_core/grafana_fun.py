@@ -3708,7 +3708,7 @@ def graph_linux_os_overview(system, host, y_pos):
 
 
     panels_list.append(CollectorTimeSeries(
-        title=f"{host} Filesystem Usage (Last value interval $__interval)",
+        title=f"{system} - {host} Filesystem Usage",
         dataSource='default',
         targets=target_fs,
         drawStyle='line',

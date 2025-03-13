@@ -30,3 +30,20 @@ GRAPH_LINUX_OS_FS_DESCRIPTION = (
     "and anticipate future storage needs."
 )
 
+
+GRAPH_LINUX_OS_NETWORK_DESCRIPTION = (
+    "Network Traffic Over Time (Rx/Tx): "
+    "This graph displays inbound (Rx) and outbound (Tx) network traffic across different interfaces, "
+    "showing data transfer rates over a given period. "
+    "Outbound traffic (Tx) appears above the x-axis, while inbound traffic (Rx) appears below the x-axis. "
+    "It helps visualize network activity, track usage patterns, and identify potential anomalies or spikes in traffic."
+)
+
+
+GRAPH_ETERNUS_CS8000_FC_DESCRIPTION = (
+    "FC Traffic Over Time (Rx/Tx): "
+    "This graph displays inbound (Rx) and outbound (Tx) FC traffic across different interfaces, "
+    "showing data transfer rates over a given period. "
+    "Outbound traffic (Tx) appears above the x-axis, while inbound traffic (Rx) appears below the x-axis. "
+    "It helps visualize network activity, track usage patterns, and identify potential anomalies or spikes in traffic."
+)

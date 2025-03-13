@@ -465,6 +465,7 @@ def graph_linux_os_net(system_name, resource_name, metric, y_pos):
             legendSortDesc=False,
             tooltipMode="multi",
             overrides=override_lst,
+            description=GRAPH_LINUX_OS_NETWORK_DESCRIPTION, 
         ))
 
         pos = pos + 7
@@ -992,6 +993,7 @@ def graph_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
             legendCalcs=['mean', 'max'],
             legendSortDesc=False,
             overrides=override_lst,
+            description=GRAPH_ETERNUS_CS8000_FC_DESCRIPTION,
         ))
 
         pos = pos + 7

@@ -33,7 +33,7 @@ GRAPH_ETERNUS_CS8000_FC_DESCRIPTION = (
 #
 ########################################################################################################################
 
-def gfun_eternus_cs8000_main(system_name, resource_name, data, global_pos):
+def gfun_eternus_cs8000_system_main(system_name, resource_name, data, global_pos):
     panels_list = []
     y_pos = global_pos
 
@@ -77,6 +77,152 @@ def gfun_eternus_cs8000_main(system_name, resource_name, data, global_pos):
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
+
+def graph_eternus_cs8000_home_main(system, host, y_pos):
+
+
+    panels_list =[]
+    pos = y_pos + 1
+
+    #THIS MUST BE CHANGED LAZY CODING, JUST A WORK AROUND FOR SPEED SAKE
+    if host=="VLP":
+        target_fs = [
+            InfluxDBTarget(
+                query=f"SELECT SUM(\"Total\") FROM (SELECT LAST(\"total\") AS \"Total\" FROM \"fs\" "
+                        f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+                alias="Total"
+            ),
+            InfluxDBTarget(
+                query=f"SELECT SUM(\"Used\") FROM (SELECT LAST(\"used\") AS \"Used\" FROM \"fs\" "
+                        f"WHERE (\"system\" = '{system}' AND \"host\" = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\", \"host\", \"system\" fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+                alias="Used"
+            ),
+            InfluxDBTarget(
+                query=f"SELECT HOLT_WINTERS(SUM(\"Used\"), 30, 0) FROM (SELECT LAST(\"used\") as \"Used\" FROM \"fs\" "
+                        f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') "
+                        f"GROUP BY time($__interval), \"mount\"::tag, \"host\"::tag, \"system\"::tag fill(null)) "
+                        f"WHERE $timeFilter "
+                        f"GROUP BY time($__interval)",
+                alias="Forecast"
+            )
+        ]
+
+        json_overrides = [
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Total"
+                },
+                "properties": [
+                    {
+                        "id": "custom.fillBelowTo",
+                        "value": "Used"
+                    },
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "super-light-blue",
+                            "mode": "fixed"
+                        }
+                    },
+                    {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Growth"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "orange",
+                            "mode": "fixed"
+                        }
+                    },
+                    {
+                        "id": "custom.lineWidth",
+                        "value": 4
+                    },
+                    {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                    },
+                    {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                    },
+                    {
+                        "id": "custom.lineInterpolation",
+                        "value": "stepAfter"
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Forecast"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "fixedColor": "super-light-purple",
+                            "mode": "fixed"
+                        }
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Used"
+                },
+                "properties": [
+                    {
+                        "id": "color",
+                        "value": {
+                            "mode": "fixed",
+                            "fixedColor": "blue"
+                        }
+                    }
+                ]
+            }
+        ]
+
+
+        panels_list.append(CollectorTimeSeries(
+            title=f"{system} - {host} Filesystem Usage",
+            dataSource='default',
+            targets=target_fs,
+            drawStyle='line',
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
+            unit=COLLECTOR_FS_UNITS,
+            gridPos=GridPos(h=10, w=24, x=0, y=pos),
+            spanNulls=COLLECTOR_SPAN_NULLS,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendCalcs=['mean', 'min', 'max'],
+            tooltipMode="multi",
+            overrides=json_overrides,
+            description=GRAPH_LINUX_OS_FS_DESCRIPTION,
+        ))
+
+
+        pos = pos + 14
+        
+    return pos, panels_list
+
+
 
 def gfun_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
     str_title = "File System IO (" + resource_name + ")"
@@ -604,5 +750,29 @@ def gfun_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
         pos = pos + 7
 
     return pos, panels_list
+
+def graph_eternus_cs8000_dashboard_vars(data):
+    tpl_lst = []
+
+    for metric in data:
+        match metric['metric']:
+            case "drives":
+                tpl_lst = tpl_lst + [Template(
+                    # dataSource="default",
+                    name='tapename',
+                    label='tapename',
+                    query='SHOW TAG VALUES WITH KEY = \"tapename\"',
+                    type='query',
+                    includeAll=True,
+                    multi=True,
+                    allValue=True,
+                    default='All',
+                    refresh=2,
+                    hide=HIDE_VARIABLE,
+                )
+                ]
+
+    return tpl_lst
+
 
 

@@ -10,7 +10,6 @@
 ########################################################################################################################
 
 import json, requests, logging
-#from functions_core.yaml_validate import *
 from grafanalib._gen import DashboardEncoder
 
 

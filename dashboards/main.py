@@ -23,7 +23,7 @@ import sys, os, logging, time
 from logging.handlers import RotatingFileHandler
 from threading import Thread, Event
 from functions_core.yaml_validate import *
-from functions_core.grafana_fun import *
+from functions_core.gfun_main import *
 from functions_core.utils import *
 from functions import *
 
@@ -82,7 +82,8 @@ if __name__ == "__main__":
 
 
     if config.global_parameters.auto_fungraph:
-        build_dashboards(config)
+        #build_dashboards(config)
+        gfun_main(config)
     
 
     while True:
@@ -118,6 +119,7 @@ if __name__ == "__main__":
             event.clear()
            
             if config.global_parameters.auto_fungraph:
-                build_dashboards(config)
+                #build_dashboards(config)
+                gfun_main(config)
             logging.info("Configfile reloaded")
             logging.debug("Configfile reloaded")

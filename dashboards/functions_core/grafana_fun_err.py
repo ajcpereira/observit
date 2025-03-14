@@ -68,10 +68,10 @@ def create_system_dashboard(sys, config):
     for res in sys['resources']:
         match res['name']:
             case "linux_os":
-                y_pos, res_panel = gfun_linux_os_main(str(sys['system']), str(res['name']), res['data'], y_pos)
+                y_pos, res_panel = gfun_linux_os_system_main(str(sys['system']), str(res['name']), res['data'], y_pos)
                 panels = panels + res_panel
             case "eternus_cs8000":
-                y_pos, res_panel = gfun_eternus_cs8000_main(str(sys['system']), str(res['name']), res['data'], y_pos)
+                y_pos, res_panel = gfun_eternus_cs8000_system_main(str(sys['system']), str(res['name']), res['data'], y_pos)
                 templating = graph_eternus_cs8000_dashboard_vars(res['data'])
                 panels = panels + res_panel
             case "powerstore":
@@ -3708,7 +3708,7 @@ def graph_linux_os_overview(system, host, y_pos):
     return pos, panels_list
 
 
-def graph_eternus_cs8000_overview(system, host, y_pos):
+def graph_eternus_cs8000_home_main(system, host, y_pos):
 
 
     panels_list =[]

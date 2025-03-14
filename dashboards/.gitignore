@@ -1,0 +1,11 @@
+**/.venv/*
+**/id_rsa
+**/__pycache__/
+**/archive/
+**/in_progress/logs/*
+**/logs/*
+**/keys/*
+**/.mypy_cache
+**/.idea/
+**/config/config.yaml
+**/.env

@@ -145,7 +145,7 @@ def gfun_create_home_dashboard(data):
                         y_pos, panel = graph_function(system, host, y_pos)
                         panels = panels + panel
                     else:
-                        logging.error(f"Function name {function_name} is not defined!")
+                        logging.error(f"Function name {graph_function_name} is not defined!")
                         raise ValueError(f"Function '{graph_function_name}' not found.")
                 except Exception as e:
                     logging.error(f"Error processing {system}, {host} for {resource_type}: {e}")

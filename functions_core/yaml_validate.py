@@ -17,7 +17,7 @@ import os,logging,sys
 
 ########## LIST OF RESOURCES_CONFIGS THAT RUN ONLY ONCE
 
-excluded_resources_types = ["telegraf_local_cpu","telegraf_vmware"]
+excluded_resources_types = ["telegraf"]
  
 ########## LIST OF RESOURCES_CONFIGS THAT RUN ONLY ONCE
 #################################################################################
@@ -59,10 +59,8 @@ class AllowedMetrics:
                    ['powerstore.powerstore_node','powerstore.powerstore_space']],
         'eternus_dx': [['cpu', 'tppool', 'power','temp','vol'], 
                    ['eternus_dx.eternus_dx_cpu', 'eternus_dx.eternus_dx_tppool', 'eternus_dx.eternus_dx_power','eternus_dx.eternus_dx_temp','eternus_dx.eternus_dx_vol']],
-        'telegraf_vmware': [['all'], 
-                   ['telegraf.telegraf_vmware']],
-        'telegraf_local_cpu': [['all'], 
-                   ['telegraf.telegraf_local_cpu']]
+        'telegraf': [['vmware'], 
+                   ['telegraf.telegraf_vmware']]
     }
 
     @classmethod

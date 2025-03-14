@@ -137,7 +137,6 @@ build_collector() {
 	docker compose stop observit
     docker compose stop dashboards
     
-
 	docker compose images rm observit-observit-1
     docker compose images rm observit-dashboards-1
 
@@ -153,7 +152,13 @@ build_collector() {
 	docker build . -t observit:latest
 	docker compose create observit
 
+    docker build . -t dashboards:latest -f dashboards/install/Dockerfile
+	docker compose create dashboards
+
 	docker compose start observit
+    docker compose up -d
+
+	docker compose start dashboards
     docker compose up -d
 
 	rm Dockerfile

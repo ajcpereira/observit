@@ -43,51 +43,6 @@ event = Event()
 #                                                                               #
 #################################################################################
 
-########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
-
-# def run_threaded(**args) -> None:
-#     global excluded_resources_types
-    
-#     while True:
-#         if 'control' in args:
-#             event.wait(60)
-#             logging.debug("Will run managed sessions")
-#             if event.is_set():
-#                 logging.debug("#### Exited run_thread for Managed Sessions ####")
-#                 break
-#             with SshConnect.global_lock:
-#                 SshConnect.manage_sessions(None)
-#             #with HttpConnect.global_lock:
-#             #    HttpConnect.manage_sessions(None)                
-#         else:
-#             args=args_setup(args)
-#             event.wait(timeout=args['poll']*60)
-#             if event.is_set():
-#                 logging.debug("#### Exited run_thread ####")
-#                 break
-
-#             # This if will check if the excluded resources_types have run and if yes will not run again
-#             if args['resources_types'] in excluded_resources_types:
-#                 if args['excluded_resources_types_run'] == 1:
-#                     logging.debug(f"Running excluded_resources_types_run with {args}")
-#                     args['excluded_resources_types_run'] = 0
-#                     Thread(target=eval(args['func']), kwargs=args).start()
-#             # If it is not excluded we will let it run normally in the cycle
-#             else:
-#                 logging.debug("Will run_thread with %s" % args)
-#                 Thread(target=eval(args['func']), kwargs=args).start()
-########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
-
-########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
-
-# def launch_thread(result_dicts):
-#     for result_dict in result_dicts:
-#         logging.debug("Will launch thread %s" % result_dict)
-#         Thread(target=run_threaded, kwargs=result_dict).start()
-#     # Will add a Thread to check ssh sessions
-#     Thread(target=run_threaded, kwargs={'control': 'yes'}).start()
-
-########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
 
 #################################################################################
 #                                                                               #

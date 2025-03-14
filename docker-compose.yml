@@ -82,7 +82,7 @@ services:
   dashboards:
     build:
       context: .
-      dockerfile: dashboards/install/Dockerfile.dashboards 
+      dockerfile: dashboards/install/Dockerfile
     image: "dashboards:latest"
     restart: unless-stopped
     volumes:

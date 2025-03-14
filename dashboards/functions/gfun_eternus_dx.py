@@ -537,3 +537,28 @@ def gfun_eternus_dx_tpp(system_name, resource_name, metric, y_pos):
 
     return line, panels_list
 
+def graph_eternus_dx_dashboard_vars(system, data):
+    tpl_lst = []
+
+    for metric in data:
+        host = metric['hosts'][0]
+        match metric['metric']:
+            case "tppool":
+                tpl_lst = tpl_lst + [Template(
+                    # dataSource="default",
+                    name='tpp',
+                    label='tpp',
+                    query=f"SHOW TAG VALUES WITH KEY = \"tppool_nr\" WHERE \"system\"::tag = '{system}'",
+                    type='query',
+                    includeAll=True,
+                    multi=True,
+                    allValue="",
+                    default='All',
+                    refresh=2,
+                    hide=HIDE_VARIABLE,
+                )
+                ]
+
+    return tpl_lst
+
+

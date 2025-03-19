@@ -44,8 +44,9 @@ def upload_to_grafana(json_data, server, api_key, verify=False):
     try:
         r = requests.post(f"https://{server}/api/dashboards/db", data=json_data, headers=headers, verify=verify)
         logging.debug("Message from grafana_fun is %s" % r.json())
+        logging.info(f"Dashboard created with sucess!")
     except Exception as msgerror:
-        logging.error("Failed to create report in grafana %s with error %s" % (server, msgerror))
+        logging.error("Failed to create dashboard in grafana %s with error %s" % (server, msgerror))
         return None
 
     return r

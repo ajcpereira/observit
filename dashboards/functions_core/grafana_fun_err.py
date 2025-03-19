@@ -68,17 +68,17 @@ def create_system_dashboard(sys, config):
     for res in sys['resources']:
         match res['name']:
             case "linux_os":
-                y_pos, res_panel = gfun_linux_os_system_main(str(sys['system']), str(res['name']), res['data'], y_pos)
+                y_pos, res_panel = gfun_sys_linux_os_main(str(sys['system']), str(res['name']), res['data'], y_pos)
                 panels = panels + res_panel
             case "eternus_cs8000":
-                y_pos, res_panel = gfun_eternus_cs8000_system_main(str(sys['system']), str(res['name']), res['data'], y_pos)
-                templating = graph_eternus_cs8000_dashboard_vars(res['data'])
+                y_pos, res_panel = gfun_sys_eternus_cs8000_main(str(sys['system']), str(res['name']), res['data'], y_pos)
+                templating = graph_sys_eternus_cs8000_dashboard_vars(res['data'])
                 panels = panels + res_panel
             case "powerstore":
-                y_pos, res_panel = gfun_powerstore_main(str(sys['system']), str(res['name']), res['data'], y_pos)
+                y_pos, res_panel = gfun_sys_powerstore_main(str(sys['system']), str(res['name']), res['data'], y_pos)
                 panels = panels + res_panel
             case "eternus_dx":
-                y_pos, res_panel = gfun_eternus_dx_main(str(sys['system']), str(res['name']), res['data'], y_pos)
+                y_pos, res_panel = gfun_sys_eternus_dx_main(str(sys['system']), str(res['name']), res['data'], y_pos)
                 templating = graph_eternus_dx_dashboard_vars(str(sys['system']), res['data'])
                 panels = panels + res_panel
 
@@ -217,7 +217,7 @@ def create_title_panel(system_name, panel_title=""):
     return panel
 
 
-def graph_eternus_cs8000_dashboard_vars(data):
+def graph_sys_eternus_cs8000_dashboard_vars(data):
     tpl_lst = []
 
     for metric in data:
@@ -2324,7 +2324,7 @@ def create_main_observit_dashboard(data):
     return my_dashboard 
 
 
-def graph_eternus_dx_overview(system, host, y_pos):
+def gfun_home_eternus_dx_main(system, host, y_pos):
 
 
     panels_list =[]
@@ -3708,7 +3708,7 @@ def graph_linux_os_overview(system, host, y_pos):
     return pos, panels_list
 
 
-def graph_eternus_cs8000_home_main(system, host, y_pos):
+def gfun_home_eternus_cs8000_main(system, host, y_pos):
 
 
     panels_list =[]

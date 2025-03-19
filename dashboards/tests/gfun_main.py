@@ -9,7 +9,6 @@
 # IMPORTS
 ########################################################################################################################
 
-import json
 from functions_core.gfun_dm import *
 from functions_core.gfun_utils import *
 from functions_core.grafanalib_ext import *
@@ -22,7 +21,7 @@ from functions import *
 #
 ########################################################################################################################
 
-DASHBOARD_CLASS = ["sys", "home"]
+DASHBOARD_CLASS = ["home", "sys"]
 
 
 ########################################################################################################################
@@ -35,95 +34,94 @@ DASHBOARD_CLASS = ["sys", "home"]
 def gfun_main(config):
     # Dashboards will be overwritten
 
-    logging.info(f"Starting to automagically build observit dashboards")
+    logging.debug("%s: Automagically build grafana dashboards", gfun_main.__name__)
     grafana_api_key = config.global_parameters.grafana_api_key
     grafana_server = config.global_parameters.grafana_server + ":3000"
 
+    
     systems = data_model_build(config)
 
-    for dash_class in DASHBOARD_CLASS:
-              # Construct the function name dynamically
-        function_name = f"gfun_{dash_class}_create_dashboard"
+    for sys in systems:
+        my_dashboard = gfun_sys_create_dashboard(sys, config)
+        my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=True, message="Updated by dashboards observit module")
+        #logging.debug("Created dashboard %s", my_dashboard_json)
+        upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
 
-        logging.debug(f"Will call function name {function_name}()")
+    hosts_per_res = data_model_get_hosts_per_resource_grouped(systems)
+    my_dashboard = gfun_home_create_dashboard(hosts_per_res)
+    
+    my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=True, message="Updated by grafun-cli")
+    res = upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
+
+    if res is not None:
+        if res.status_code == 200:
+            logging.debug(f"Main observIT dashboard created ({res.status_code} {res.reason})")
+            return -1
+        else:
+            logging.error(f"Unable to create Main observIT dashboard error is: {res.status_code} {res.reason}")
+    else:
+        logging.error(f"Unexpected error occurred!!!")
+        return -1
+
+    return 1
+
+
+
+def gfun_sys_create_dashboard(sys, config):
+
+    panels = []
+    templating = []
+    y_pos = 3
+
+    panels = panels + create_title_panel(str(sys['system']))
+
+    for res in sys['resources']:
+        # Construct the function name dynamically
+        function_name = f"gfun_sys_{res['name']}_main"
+
+        logging.debug(f"Will call function name {function_name}")
 
         # Get the function from the current module
         function = globals().get(function_name)
 
         if function:
-            sys_dashboards = function(systems)
-            
-            for sys_dash in sys_dashboards:
-                my_dashboard_json = get_dashboard_json(sys_dash, overwrite=True, message="Updated by dashboards observit module")
-                #Insert here some logging identifieng the dashboad name
-                logging.info(f"Created dashboard ")
-                upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
+            y_pos, res_panel = function(str(sys['system']), str(res['name']), res['data'], y_pos)
+            panels = panels + res_panel
+
+            # Handle templating for specific resources
+            if res['name'] in ["eternus_cs8000", "eternus_dx"]:
+                templating_function_name = f"graph_{res['name']}_dashboard_vars"
+                templating_function = globals().get(templating_function_name)
+                if templating_function:
+                    templating = templating_function(res['data'])
         else:
             logging.error(f"Function name {function_name} is not defined!")
 
+    links_panel = [DashboardLink(
+        asDropdown=True,
+        type="dashboards",
+        title="Menu",
+        keepTime=False,
+    )]
 
-def gfun_sys_create_dashboard(systems):
+    my_dashboard = Dashboard(
+        title="System " + sys['system'] + " dashboard",
+        description="observit auto generated dashboard",
+        tags=[
+            sys['system'], "observit",
+        ],
+        timezone="browser",
+        refresh="1m",
+        panels=panels,
+        templating=Templating(templating),
+        links=links_panel,
+    ).auto_panel_ids()
 
-    my_dashboards = []
-    #systems = data_model_build(config)
-
-    for sys in systems:
-        
-        panels = []
-        templating = []
-        y_pos = 3
-
-        panels = panels + create_title_panel(str(sys['system']))
-
-        for res in sys['resources']:
-            # Construct the function name dynamically
-            function_name = f"gfun_sys_{res['name']}_main"
-
-            logging.debug(f"Will call function name {function_name}({str(sys['system'])})")
-
-            # Get the function from the current module
-            function = globals().get(function_name)
-
-            if function:
-                y_pos, res_panel = function(str(sys['system']), str(res['name']), res['data'], y_pos)
-                panels = panels + res_panel
-
-                # Handle templating for specific resources
-                if res['name'] in ["eternus_cs8000", "eternus_dx"]:
-                    templating_function_name = f"graph_{res['name']}_dashboard_vars"
-                    templating_function = globals().get(templating_function_name)
-                    if templating_function:
-                        templating = templating_function(res['data'])
+    return my_dashboard
 
 
-                links_panel = [DashboardLink(
-                                asDropdown=True,
-                                type="dashboards",
-                                title="Menu",
-                                keepTime=False,
-                                )]
 
-                # Build a list with grafana dashboards
-                my_dashboards = my_dashboards + [Dashboard(
-                    title="System " + sys['system'] + " dashboard",
-                    description="observit auto generated dashboard",
-                    tags=[
-                        sys['system'], "observit",
-                    ],
-                    timezone="browser",
-                    refresh="1m",
-                    panels=panels,
-                    templating=Templating(templating),
-                    links=links_panel,
-                ).auto_panel_ids()]
-
-            else:
-                logging.error(f"Function name {function_name} is not defined!")
-
-    return my_dashboards
-
-
-def gfun_home_create_dashboard(systems):
+def gfun_home_create_dashboard(data):
     panels = []
     templating = []
     y_pos = 3
@@ -135,15 +133,9 @@ def gfun_home_create_dashboard(systems):
         content="<h1>Capacity Management</h1>",
     )]
 
-    #return 2
-    #systems = data_model_build(config)
+    logging.debug(f"Received host list for the creation of main dashboard : {data} ")
 
-    hosts_per_res = data_model_get_hosts_per_resource_grouped(systems)
-
-    logging.debug(f"Received host list for the creation of main dashboard : {hosts_per_res} ")
-
- 
-    for resource_type, systems in hosts_per_res.items():
+    for resource_type, systems in data.items():
         # Dynamically determine the function to call based on resource type
         #print(f"My data is {resource_type} / {systems} ")
 
@@ -174,7 +166,7 @@ def gfun_home_create_dashboard(systems):
         keepTime=False,
     )]
 
-    my_dashboard = [Dashboard(
+    my_dashboard = Dashboard(
         title="Home observit",
         description="observIT home dashboard",
         tags=["observit"],
@@ -184,7 +176,7 @@ def gfun_home_create_dashboard(systems):
         panels=panels,
         templating=Templating(templating),
         links=links_panel,
-    ).auto_panel_ids()]
+    ).auto_panel_ids()
  
 
     return my_dashboard 

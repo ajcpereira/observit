@@ -75,7 +75,7 @@ if __name__ == "__main__":
     ########## END - Start Logging Facility #####################################    
 
     ########## BEGIN - Log configfile start processing ##########################
-    logging.info("################ Starting Collector ################")
+    logging.info("################ Starting dashboards  ################")
     ########## END - Log configfile start processing ############################
     
     logging.debug("Will print the dict that will be used: %s" % result_dicts)

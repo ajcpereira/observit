@@ -5,6 +5,6 @@ fabric2
 requests
 python-dateutil
 grafanalib
-influxdb_client
-toml
+#influxdb_client
+#toml
 cryptography

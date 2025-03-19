@@ -63,7 +63,7 @@ GRAPH_LINUX_OS_NETWORK_DESCRIPTION = (
 ########################################################################################################################
 
 
-def gfun_linux_os_system_main(system_name, resource_name, data, global_pos):
+def gfun_sys_linux_os_main(system_name, resource_name, data, global_pos):
     # todo:
 
     panels_list = []
@@ -72,25 +72,25 @@ def gfun_linux_os_system_main(system_name, resource_name, data, global_pos):
     for metric in data:
         match metric['metric']:
             case "cpu":
-                y_pos, panel = gfun_linux_os_cpu(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_linux_os_cpu(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "mem":
-                y_pos, panel = gfun_linux_os_mem(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_linux_os_mem(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "fs":
-                y_pos, panel = gfun_linux_os_fs(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_linux_os_fs(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = gfun_linux_os_net(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_linux_os_net(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
 
 
-def gfun_linux_os_home_main(system, host, y_pos):
+def gfun_home_linux_os_main(system, host, y_pos):
 
 
     panels_list =[]
@@ -239,7 +239,7 @@ def gfun_linux_os_home_main(system, host, y_pos):
 #
 ########################################################################################################################
 
-def gfun_linux_os_cpu(system_name, resource_name, metric, y_pos):
+def gfun_sys_linux_os_cpu(system_name, resource_name, metric, y_pos):
     str_title = f"CPU Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -317,7 +317,7 @@ def gfun_linux_os_cpu(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def gfun_linux_os_mem(system_name, resource_name, metric, y_pos):
+def gfun_sys_linux_os_mem(system_name, resource_name, metric, y_pos):
     str_title = f"Memory Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
@@ -351,20 +351,20 @@ def gfun_linux_os_mem(system_name, resource_name, metric, y_pos):
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=50,
             unit='decmbytes',
-            gridPos=GridPos(h=7, w=4, x=x_pos, y=pos),
+            gridPos=GridPos(h=7, w=6, x=x_pos, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="bottom",
             legendDisplayMode="table",
             legendSortBy="Name",
             legendCalcs=['last', 'mean', 'max'],
-            valueDecimals=0,
+            valueDecimals=1,
             tooltipMode="multi",
             overrides=json_overrides,
             description=GRAPH_LINUX_OS_MEM_DESCRIPTION,
         )
         )
 
-        x_pos += 4
+        x_pos += 6
         if x_pos == 24:
             x_pos = 0
             pos += 7
@@ -374,7 +374,7 @@ def gfun_linux_os_mem(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def gfun_linux_os_net(system_name, resource_name, metric, y_pos):
+def gfun_sys_linux_os_net(system_name, resource_name, metric, y_pos):
     str_title = f"Network Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
@@ -438,8 +438,7 @@ def gfun_linux_os_net(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-
-def gfun_linux_os_fs(system_name, resource_name, metric, y_pos):
+def gfun_sys_linux_os_fs(system_name, resource_name, metric, y_pos):
 
     str_title = f"File System Capacity ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]

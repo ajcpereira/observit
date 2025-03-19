@@ -25,7 +25,7 @@ from functions_core.grafanalib_ext import *
 ########################################################################################################################
 
 
-def gfun_powerstore_main(system_name, resource_name, data, global_pos):
+def gfun_sys_powerstore_main(system_name, resource_name, data, global_pos):
 
     panels_list = []
     y_pos = global_pos
@@ -33,16 +33,16 @@ def gfun_powerstore_main(system_name, resource_name, data, global_pos):
     for metric in data:
         match metric['metric']:
             case "node":
-                y_pos, panel = gfun_powerstore_node_cpu(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_powerstore_node_cpu(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
-                y_pos, panel = gfun_powerstore_node_read(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_powerstore_node_read(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
-                y_pos, panel = gfun_powerstore_node_write(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_powerstore_node_write(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
-                y_pos, panel = gfun_powerstore_node_total(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_powerstore_node_total(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
             case "space":
-                y_pos, panel = gfun_powerstore_space(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_powerstore_space(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
@@ -54,7 +54,7 @@ def gfun_powerstore_main(system_name, resource_name, data, global_pos):
 #
 ########################################################################################################################
 
-def gfun_powerstore_node_cpu(system_name, resource_name, metric, y_pos):
+def gfun_sys_powerstore_node_cpu(system_name, resource_name, metric, y_pos):
     str_title = f"CPU Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -99,7 +99,7 @@ def gfun_powerstore_node_cpu(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def gfun_powerstore_node_read(system_name, resource_name, metric, y_pos):
+def gfun_sys_powerstore_node_read(system_name, resource_name, metric, y_pos):
     str_title = f"Read Performance ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -208,7 +208,7 @@ def gfun_powerstore_node_read(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def gfun_powerstore_node_write(system_name, resource_name, metric, y_pos):
+def gfun_sys_powerstore_node_write(system_name, resource_name, metric, y_pos):
     str_title = f"Write Performance ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -317,8 +317,7 @@ def gfun_powerstore_node_write(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-
-def gfun_powerstore_node_total(system_name, resource_name, metric, y_pos):
+def gfun_sys_powerstore_node_total(system_name, resource_name, metric, y_pos):
     str_title = f"Total Performance ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -427,8 +426,7 @@ def gfun_powerstore_node_total(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-
-def gfun_powerstore_space(system_name, resource_name, metric, y_pos):
+def gfun_sys_powerstore_space(system_name, resource_name, metric, y_pos):
 
     # marteladão - tem de ser melhorado (está a forçar este painel a seguir ao cpu)
     y_pos = 4

@@ -29,56 +29,56 @@ GRAPH_ETERNUS_CS8000_FC_DESCRIPTION = (
 
 ########################################################################################################################
 #
-# FUNCTIONS: Main Function
+# FUNCTIONS: Main Functions
 #
 ########################################################################################################################
 
-def gfun_eternus_cs8000_system_main(system_name, resource_name, data, global_pos):
+def gfun_sys_eternus_cs8000_main(system_name, resource_name, data, global_pos):
     panels_list = []
     y_pos = global_pos
 
     for metric in data:
         match metric['metric']:
             case "fs_io":
-                y_pos, panel = gfun_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "drives":
-                y_pos, panel = gfun_eternus_cs8000_drives(system_name, resource_name, y_pos)
+                y_pos, panel = gfun_sys_eternus_cs8000_drives(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "medias":
-                y_pos, panel = gfun_eternus_cs8000_medias(system_name, resource_name, y_pos)
+                y_pos, panel = gfun_sys_eternus_cs8000_medias(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "pvgprofile":
-                y_pos, panel = gfun_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos)
+                y_pos, panel = gfun_sys_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "fc":
-                y_pos, panel = gfun_eternus_cs8000_fc(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_eternus_cs8000_fc(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "cpu":
-                y_pos, panel = gfun_linux_os_cpu(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_linux_os_cpu(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "mem":
-                y_pos, panel = gfun_linux_os_mem(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_linux_os_mem(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "fs":
-                y_pos, panel = gfun_linux_os_fs(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_linux_os_fs(system_name, resource_name, metric, y_pos)
                 #y_pos, panel = graph_eternus_cs8000_fs(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = gfun_linux_os_net(system_name, resource_name, metric, y_pos)
+                y_pos, panel = gfun_sys_linux_os_net(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
 
-def graph_eternus_cs8000_home_main(system, host, y_pos):
+def gfun_home_eternus_cs8000_main(system, host, y_pos):
 
 
     panels_list =[]
@@ -222,9 +222,14 @@ def graph_eternus_cs8000_home_main(system, host, y_pos):
         
     return pos, panels_list
 
+########################################################################################################################
+#
+# FUNCTIONS: Plot a graphic for each metric
+#
+########################################################################################################################
 
 
-def gfun_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
+def gfun_sys_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
     str_title = "File System IO (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos)), ]
     pos = y_pos + 1
@@ -367,7 +372,7 @@ def gfun_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def gfun_eternus_cs8000_drives(system_name, resource_name, y_pos):
+def gfun_sys_eternus_cs8000_drives(system_name, resource_name, y_pos):
     str_title = "Tape Libraries (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -475,7 +480,7 @@ def gfun_eternus_cs8000_drives(system_name, resource_name, y_pos):
     return line, panels_list
 
 
-def gfun_eternus_cs8000_medias(system_name, resource_name, y_pos):
+def gfun_sys_eternus_cs8000_medias(system_name, resource_name, y_pos):
     str_title = "Tape Medias (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -583,7 +588,7 @@ def gfun_eternus_cs8000_medias(system_name, resource_name, y_pos):
     return line, panels_list
 
 
-def gfun_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos):
+def gfun_sys_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos):
     str_title = "Physical Volume Group Profile (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -691,7 +696,7 @@ def gfun_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos):
     return line, panels_list
 
 
-def gfun_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
+def gfun_sys_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
     str_title = f"FibreChannel Usage ({resource_name})"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
@@ -751,7 +756,8 @@ def gfun_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
 
     return pos, panels_list
 
-def graph_eternus_cs8000_dashboard_vars(data):
+
+def graph_sys_eternus_cs8000_dashboard_vars(data):
     tpl_lst = []
 
     for metric in data:

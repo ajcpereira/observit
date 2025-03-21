@@ -2,15 +2,17 @@
 # PROJECT: observIT dashboards container
 # DESCRIPTION: Main dashboards functions
 # AUTHOR: machadon
-# DATE: 2025-03-13
+# DATE: 2025-03-20
 ########################################################################################################################
 
 ########################################################################################################################
 # IMPORTS
 ########################################################################################################################
 
-import json
+import json, pandas
 from functions_core.gfun_dm import *
+#from functions_core.gfun_config_db import *
+from functions_core.GfunConfigDB import *
 from functions_core.gfun_utils import *
 from functions_core.grafanalib_ext import *
 from functions import *
@@ -39,6 +41,9 @@ def gfun_main(config):
     grafana_api_key = config.global_parameters.grafana_api_key
     grafana_server = config.global_parameters.grafana_server + ":3000"
 
+    config_db = GfunConfigDB(config)
+    #gfun_host_create_dashboard(config_db)
+
     systems = data_model_build(config)
 
     for dash_class in DASHBOARD_CLASS:
@@ -51,7 +56,7 @@ def gfun_main(config):
         function = globals().get(function_name)
 
         if function:
-            sys_dashboards = function(systems)
+            sys_dashboards = function(systems, config_db)
             
             for sys_dash in sys_dashboards:
                 my_dashboard_json = get_dashboard_json(sys_dash, overwrite=True, message="Updated by dashboards observit module")
@@ -62,7 +67,7 @@ def gfun_main(config):
             logging.error(f"Function name {function_name} is not defined!")
 
 
-def gfun_sys_create_dashboard(systems):
+def gfun_sys_create_dashboard(systems, config_db):
 
     my_dashboards = []
     #systems = data_model_build(config)
@@ -123,7 +128,7 @@ def gfun_sys_create_dashboard(systems):
     return my_dashboards
 
 
-def gfun_home_create_dashboard(systems):
+def gfun_home_create_dashboard(systems, config_db):
     panels = []
     templating = []
     y_pos = 3
@@ -134,9 +139,6 @@ def gfun_home_create_dashboard(systems):
         mode="html",
         content="<h1>Capacity Management</h1>",
     )]
-
-    #return 2
-    #systems = data_model_build(config)
 
     hosts_per_res = data_model_get_hosts_per_resource_grouped(systems)
 
@@ -189,6 +191,88 @@ def gfun_home_create_dashboard(systems):
 
     return my_dashboard 
 
+
+# def gfun_host_create_dashboard(systems, config_db):
+#     '''Will return a list of dashboards, one for each host'''
+
+#     my_dashboards = []
+#     #systems = data_model_build(config)
+
+#     query = config_db.run_sql_query("SELECT DISTINCT system, resource_type, host FROM config ORDER BY system, resource_type, host")
+
+#     for index, row in query.iterrows():
+    
+#         panels = []
+#         templating = []
+#         y_pos = 3
+
+#         panels = panels + create_title_panel("host " + row["host"])
+
+#         # Construct the function name dynamically
+#         function_name = f"gfun_host_{row['resource_type']}_main"
+
+#         logging.debug(f"Will call function name {function_name}({row["system"]})")
+
+#         # Get the function from the current module
+#         function = globals().get(function_name)
+
+#         if function:
+#             y_pos, res_panel = function(row["system"], row["host"], config_db, y_pos)
+#             panels = panels + res_panel
+
+#             links_panel = [DashboardLink(
+#                             asDropdown=True,
+#                             type="dashboards",
+#                             title="Menu",
+#                             keepTime=False,
+#                             )]
+
+#             # Build a list with grafana dashboards
+#             my_dashboards = my_dashboards + [Dashboard(
+#                 title=f"Host {row["host"]} (System {row["system"]})",
+#                 description="observit auto generated dashboard",
+#                 tags=[
+#                     row["host"], row["system"], "observit",
+#                 ],
+#                 timezone="browser",
+#                 refresh="1m",
+#                 panels=panels,
+#                 templating=Templating(templating),
+#                 links=links_panel,
+#             ).auto_panel_ids()]
+#         else:
+#             logging.error(f"Function name {function_name} is not defined!")
+
+#     return my_dashboards
+
+
+# def gfun_host_linux_os_main(system, host, config_db, global_pos):
+#     '''Will return metric panels'''
+
+#     panels_list = []
+#     y_pos = global_pos
+
+#     query = config_db.run_sql_query(f"SELECT DISTINCT metric FROM config WHERE system='{system}' AND resource_type='linux_os' AND host='{host}'")
+
+#     for index, row in query.iterrows():
+        
+#          # Construct the function name dynamically
+#         function_name = f"gfun_host_linux_os_{row['metric']}"
+#         logging.debug(f"Will call function name {function_name}({row["system"]}, {row["host"]})")
+
+#         # Get the function from the current module
+#         function = globals().get(function_name)
+
+#         if function:
+#             y_pos, res_panel = function(system, host, y_pos)
+#             panels_list = panels_list + res_panel
+#         else:
+#             logging.error(f"Function name {function_name} is not defined!")
+
+#     return y_pos, panels_list
+
+# def gfun_host_eternus_cs8000_main(system, host, config_db, global_pos):
+#     return gfun_host_linux_os_main(system, host, config_db, global_pos)
 
 
 ########################################################################################################################

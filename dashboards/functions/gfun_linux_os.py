@@ -665,3 +665,14 @@ def gfun_sys_linux_os_fs(system_name, resource_name, metric, y_pos):
 
     return pos, panels_list
 
+# def gfun_host_linux_os_cpu(system_name, host, y_pos):
+#     return gfun_sys_linux_os_cpu(system_name, "linux_os", {'metric':'cpu', 'hosts': [host]}, y_pos)
+
+# def gfun_host_linux_os_mem(system_name, host, y_pos):
+#     return gfun_sys_linux_os_mem(system_name, "linux_os", {'metric':'cpu', 'hosts': [host]}, y_pos)
+
+# def gfun_host_linux_os_fs(system_name, host, y_pos):
+#     return gfun_sys_linux_os_fs(system_name, "linux_os", {'metric':'cpu', 'hosts': [host]}, y_pos)
+
+# def gfun_host_linux_os_net(system_name, host, y_pos):
+#     return gfun_sys_linux_os_fs(system_name, "linux_os", {'metric':'cpu', 'hosts': [host]}, y_pos)

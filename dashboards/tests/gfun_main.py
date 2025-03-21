@@ -66,7 +66,6 @@ def gfun_main(config):
     return 1
 
 
-
 def gfun_sys_create_dashboard(sys, config):
 
     panels = []
@@ -118,7 +117,6 @@ def gfun_sys_create_dashboard(sys, config):
     ).auto_panel_ids()
 
     return my_dashboard
-
 
 
 def gfun_home_create_dashboard(data):

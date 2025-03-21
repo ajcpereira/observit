@@ -781,4 +781,14 @@ def graph_sys_eternus_cs8000_dashboard_vars(data):
     return tpl_lst
 
 
+# def gfun_host_eternus_cs8000_cpu(system_name, host, y_pos):
+#     return gfun_sys_linux_os_cpu(system_name, "linux_os", {'metric':'cpu', 'hosts': [host]}, y_pos)
 
+# def gfun_host_eternus_cs8000_mem(system_name, host, y_pos):
+#     return gfun_sys_linux_os_mem(system_name, "linux_os", {'metric':'cpu', 'hosts': [host]}, y_pos)
+
+# def gfun_host_eternus_cs8000_fs(system_name, host, y_pos):
+#     return gfun_sys_linux_os_fs(system_name, "linux_os", {'metric':'cpu', 'hosts': [host]}, y_pos)
+
+# def gfun_host_eternus_cs8000_net(system_name, host, y_pos):
+#     return gfun_sys_linux_os_fs(system_name, "linux_os", {'metric':'cpu', 'hosts': [host]}, y_pos)

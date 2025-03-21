@@ -40,7 +40,7 @@ RUN python3 -m venv $VIRTUAL_ENV
 RUN . $VIRTUAL_ENV/bin/activate
 
 # Install dependencies:
-ADD install/requirements.txt install
+ADD dashboards/install/requirements.txt install
 RUN pip3 install -r install/requirements.txt
 
 

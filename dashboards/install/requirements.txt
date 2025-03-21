@@ -1,6 +1,7 @@
 pyyaml
 pydantic
 pandas
+pandasql
 fabric2
 requests
 python-dateutil

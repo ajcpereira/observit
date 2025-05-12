@@ -3,6 +3,7 @@ services:
     environment:
       - INTERFACE=${INTERFACE}
     image: "observit:latest"
+    pids_limit: 1000
     restart: unless-stopped
     volumes:
       - /opt/observit/collector/logs:/collector/logs

@@ -1,0 +1,24 @@
+systems:
+  - name: vmwarelab
+    resources_types: telegraf
+    config:
+      parameters:
+        telegraf_vcenterurl: https://vcenter-server.lab
+        telegraf_vcenteruser: username
+        telegraf_vcenterpwd64: password
+        poll: 1
+      metrics:
+        - name: vmware
+      ips:
+        - ip: 10.150.216.30
+          alias: vcenter
+global_parameters:
+  repository: influxdb
+  repository_port: 8086
+  repository_protocol: tcp
+  repository_api_key: 
+  loglevel: ERROR
+  logfile: logs/observit.log
+  auto_fungraph: yes
+  grafana_api_key: 
+  grafana_server: grafana

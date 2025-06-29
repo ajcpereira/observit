@@ -1,0 +1,26 @@
+systems:
+  - name: uds
+    resources_types: uds_server
+    config:
+      parameters:
+        uds_server_url: https://uds.confiator.com
+        uds_server_auth: Active Directory showroom.lab
+        uds_server_user: nunom@showroom.lab
+        uds_server_password_pwd64: RmpzMTIzIyM=
+        uds_server_unsecured: True
+        poll: 1
+      metrics:
+        - name: servicepools
+      ips:
+        - ip: 192.168.1.100
+          alias: udsconfiator
+global_parameters:
+  repository: influxdb
+  repository_port: 8086
+  repository_protocol: tcp
+  repository_api_key: 
+  loglevel: ERROR
+  logfile: logs/observit.log
+  auto_fungraph: yes
+  grafana_api_key: 
+  grafana_server: grafana

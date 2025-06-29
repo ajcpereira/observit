@@ -5,8 +5,8 @@ systems:
       parameters:
         uds_server_url: https://uds.confiator.com
         uds_server_auth: Active Directory showroom.lab
-        uds_server_user: nunom@showroom.lab
-        uds_server_password_pwd64: RmpzMTIzIyM=
+        uds_server_user: username
+        uds_server_password_pwd64: password
         uds_server_unsecured: True
         poll: 1
       metrics:

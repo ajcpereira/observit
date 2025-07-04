@@ -2333,6 +2333,7 @@ def create_main_observit_dashboard(data):
         type="dashboards",
         title="Menu",
         keepTime=False,
+        tags=["observit"],
     )]
 
     my_dashboard = Dashboard(

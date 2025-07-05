@@ -67,10 +67,10 @@ def uds_server_servicepools(**args):
                 "system": args['name'],
                 "resource_type": args['resources_types'],
                 "host": args['hostname'],
-             },
-             "fields": {
                 "pool_name": pool['name'],
                 "servicesTypeProvided": pool['info']['servicesTypeProvided'][0],
+             },
+             "fields": {
                 "initial_srvs": pool['initial_srvs'],
                 "max_srvs": pool['max_srvs'],
                 "cache_l1_srvs": pool['cache_l1_srvs'],

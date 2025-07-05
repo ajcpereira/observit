@@ -11,7 +11,7 @@ def uds_server_servicepools(**args):
 
     password = decode_base64(args['uds_server_password_pwd64'])
 
-    rest_url_path = '/uds/rest/'
+    rest_url_path = 'uds/rest/'
 
     # STEP 1: UDS server login
     request_url_path = rest_url_path + 'auth/login'

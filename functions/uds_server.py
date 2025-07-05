@@ -68,8 +68,10 @@ def uds_server_servicepools(**args):
                 "resource_type": args['resources_types'],
                 "host": args['hostname'],
                 "pool_name": pool['name'],
-                "servicesTypeProvided": pool['info']['servicesTypeProvided'][0],
-             },
+                #must check versio in the future
+                #"servicesTypeProvided": pool['info']['services_type_provided'],
+                "servicesTypeProvided": pool['info']['services_type_provided'] if 'services_type_provided' in pool['info'] else 'unknown',
+              },
              "fields": {
                 "initial_srvs": pool['initial_srvs'],
                 "max_srvs": pool['max_srvs'],

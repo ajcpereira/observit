@@ -271,47 +271,46 @@ def uds_server_system_overview(**args):
         logging.error(f"Error parsing login response: {e}")
         return -1
 
-    for pool in response_json:
-        #print(pool['name'], pool['initial_srvs'], pool['max_srvs'], pool['info']['servicesTypeProvided'][0] )
+    pool = response_json
+   
+    influxdb_record = [{
+            "measurement": "uds_server_system_overview",
+            "tags": {
+            "system": args['name'],
+            "resource_type": args['resources_types'],
+            "host": args['hostname'],
+            },
+            "fields": {
+            "users": pool['users'],
+            "users_with_services": pool['users_with_services'],
+            "groups": pool['groups'],
+            "services": pool['services'],
+            "service_pools": pool['service_pools'],
+            "meta_pools": pool['meta_pools'],
+            "user_services": pool['user_services'],
+            "assigned_user_services": pool['assigned_user_services'],
+            "restrained_services_pools": pool['restrained_services_pools'],
+            "os_managers": pool['os_managers'],
+            "transports": pool['transports'],
+            "networks": pool['networks'],
+            "calendars": pool['calendars'],
+            "tunnels": pool['tunnels'],
+            "authenticators": pool['authenticators']
+            },
+            "time": timestamp,
+        }
+    ]
 
-        influxdb_record = [{
-             "measurement": "uds_server_system_overview",
-             "tags": {
-                "system": args['name'],
-                "resource_type": args['resources_types'],
-                "host": args['hostname'],
-             },
-             "fields": {
-                "users": pool['users'],
-                "users_with_services": pool['users_with_services'],
-                "groups": pool['groups'],
-                "services": pool['services'],
-                "service_pools": pool['service_pools'],
-                "meta_pools": pool['meta_pools'],
-                "user_services": pool['user_services'],
-                "assigned_user_services": pool['assigned_user_services'],
-                "restrained_services_pools": pool['restrained_services_pools'],
-                "os_managers": pool['os_managers'],
-                "transports": pool['transports'],
-                "networks": pool['networks'],
-                "calendars": pool['calendars'],
-                "tunnels": pool['tunnels'],
-                "authenticators": pool['authenticators']
-             },
-             "time": timestamp,
-         }
-        ]
+    logging.debug(f"Data to be sent to influxdb {influxdb_record}")
 
-        logging.debug(f"Data to be sent to influxdb {influxdb_record}")
-
-        send_influxdb(
-            str(args['repository']),
-            str(args['repository_port']),
-            args['repository_api_key'],
-            args['repo_org'],
-            args['repo_bucket'],
-            influxdb_record
-        )
+    send_influxdb(
+        str(args['repository']),
+        str(args['repository_port']),
+        args['repository_api_key'],
+        args['repo_org'],
+        args['repo_bucket'],
+        influxdb_record
+    )
         
     #STEP 3: logout
     #

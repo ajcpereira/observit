@@ -66,8 +66,8 @@ class AllowedMetrics:
         'telegraf': [['vmware'], 
                      ['telegraf.telegraf_vmware']],
         'uds_server': [
-                        ['servicepools','authenticators'], 
-                        ['uds_server.uds_server_servicepools','uds_server.uds_server_authenticators']
+                        ['servicepools','authenticators','system_overview'], 
+                        ['uds_server.uds_server_servicepools','uds_server.uds_server_authenticators','uds_server.uds_server_system_overview']
                     ],
     }
 

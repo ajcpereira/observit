@@ -79,6 +79,7 @@ def uds_server_servicepools(**args):
                 "cache_l2_srvs": pool['cache_l2_srvs'],
                 "user_services_count": pool['user_services_count'],
                 "user_services_in_preparation": pool['user_services_in_preparation'],
+                "usage_perc": float(pool['usage'].strip('%')),
              },
              "time": timestamp,
          }

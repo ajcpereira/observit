@@ -5,14 +5,14 @@ WORKDIR $WORKDIR
 ENV VIRTUAL_ENV="$WORKDIR/.venv"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
+#ENV http_proxy=http://20.220.3.113:8080
+#ENV https_proxy=http://20.220.3.113:8080
+#ENV no_proxy=grafana
+
 RUN apt-get update \
 	&& apt-get install -y \
 	python3 python3-venv python3-pip libsnmp-dev snmp-mibs-downloader vim \
 	&& apt-get clean
-
-#ENV HTTP_PROXY="http://20.220.3.113:8080"
-#ENV HTTPS_PROXY="http://20.220.3.113:8080"
-#ENV no_proxy=grafana
 
 # Copy application
 RUN mkdir config

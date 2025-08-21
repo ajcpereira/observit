@@ -39,7 +39,7 @@ def eternus_cs8000_fs_io(**args):
         ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
-        ssh.ssh_del()
+        ssh.rm()
         raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -124,7 +124,7 @@ def eternus_cs8000_drives(**args):
         ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
-        ssh.ssh_del()
+        ssh.rm()
         raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -224,7 +224,7 @@ def eternus_cs8000_medias(**args):
         ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
-        ssh.ssh_del()
+        ssh.rm()
         raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -332,7 +332,7 @@ def eternus_cs8000_pvgprofile(**args):
         ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
-        ssh.ssh_del()
+        ssh.rm()
         raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -459,7 +459,7 @@ def eternus_cs8000_fc(**args):
         ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
-        ssh.ssh_del()
+        ssh.rm()
         raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -651,7 +651,7 @@ def eternus_cs8000_vtldirtycache(**args):
         ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
-        ssh.ssh_del()
+        ssh.rm()
         raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)

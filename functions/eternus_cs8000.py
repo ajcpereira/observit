@@ -40,7 +40,7 @@ def eternus_cs8000_fs_io(**args):
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
-        return -1
+        raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
@@ -57,7 +57,7 @@ def eternus_cs8000_fs_io(**args):
 
     if len(response) == 0:
         logging.error(f"Output of iostat is empty {response}")
-        return -1
+        raise
 
     # Close ssh session
     ssh.rm()
@@ -125,7 +125,7 @@ def eternus_cs8000_drives(**args):
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
-        return -1
+        raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
@@ -225,7 +225,7 @@ def eternus_cs8000_medias(**args):
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
-        return -1
+        raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
@@ -333,7 +333,7 @@ def eternus_cs8000_pvgprofile(**args):
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
-        return -1
+        raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
@@ -460,7 +460,7 @@ def eternus_cs8000_fc(**args):
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
-        return -1
+        raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
@@ -498,7 +498,7 @@ def eternus_cs8000_fc(**args):
     except Exception as msgerror:
         logging.error("Failed the cmd execution in %s with error %s" % (args['ip'], msgerror))
         ssh.rm()
-        return -1
+        raise
     ########## END EXECUTE MAIN SSH COMMANDS ###########################        
         
     ########## WILL PROCESS THE COMMANDS OUTPUT ###########################
@@ -508,7 +508,7 @@ def eternus_cs8000_fc(**args):
          os_ver = float(os_ver.group())
     else:
          logging.error("Failed to get the OS version, consider the output %s"% stdoutcmd5.stdout)
-         return -1
+         raise
     hostctlint = list(set(f'host{match}' for line in stdoutcmd2.stdout.split('\n') for match in re.findall(r'\[(\d+):', line)))
     hostctlbe = list(set(f'host{match}' for line in stdoutcmd3.stdout.split('\n') for match in re.findall(r'\[(\d+):', line)))
     hosttgt = stdoutcmd4.stdout
@@ -534,7 +534,7 @@ def eternus_cs8000_fc(**args):
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                     ssh.rm()
-                    return -1
+                    raise
             else:
                 logging.debug(f"OS Version is < 15 it's {os_ver}")
                 try:
@@ -546,7 +546,7 @@ def eternus_cs8000_fc(**args):
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                     ssh.rm()
-                    return -1
+                    raise
             
             timestamp = int(time.time())    
             record = record + [
@@ -573,7 +573,7 @@ def eternus_cs8000_fc(**args):
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                     ssh.rm()
-                    return -1
+                    raise
             else:
                 try:
                     logging.debug(f"OS Version is < 15 it's {os_ver}")
@@ -585,7 +585,7 @@ def eternus_cs8000_fc(**args):
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                     ssh.rm()
-                    return -1
+                    raise
             timestamp = int(time.time())                    
             record = record + [
             {"measurement": "fc",
@@ -611,10 +611,10 @@ def eternus_cs8000_fc(**args):
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                     ssh.rm()
-                    return -1
+                    raise
             else:
                 logging.error("Can't find the wwn from the target in the list of host controllers:\n%s" % line)
-                return -1
+                raise
             timestamp = int(time.time())                    
             record = record + [
             {"measurement": "fc",
@@ -652,7 +652,7 @@ def eternus_cs8000_vtldirtycache(**args):
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
-        return -1
+        raise
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
@@ -667,7 +667,7 @@ def eternus_cs8000_vtldirtycache(**args):
     except Exception as msgerror:
         logging.error(f"Failed the cmd execution in {args['ip']} with error {msgerror}")
         ssh.rm()
-        return -1
+        raise
 
     timestamp = int(time.time())
 

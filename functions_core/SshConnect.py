@@ -111,7 +111,6 @@ class SshConnect():
                         if hasattr(self, 'ssh_bastion'):
                             self.ssh_bastion.close()
                             #del self.ssh_bastion
-                        raise
                         raise Exception(f"Failed the connection to bastion srv with msg: {msgerror}")
                     # Get pkey on bastion
                     try:
